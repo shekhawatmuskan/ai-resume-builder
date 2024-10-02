@@ -1,14 +1,28 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import FormSection from "../../components/FormSection";
+import ResumePreview from "../../components/ResumePreview";
+import { ResumeInfoContext } from "@/context/ResumeInfoContext";
+import dummy from "@/Data/dummy";
 
 function EditResume() {
   const params = useParams();
+  const [resumeInfo, setResumeInfo] = useState();
 
   useEffect(() => {
-    console.log(params.resumeID);
+    setResumeInfo(dummy);
   }, []);
 
-  return <div>EditResume</div>;
+  return (
+    <ResumeInfoContext.Provider value={{}}>
+      <div className="grid grid-cols-1 md:grid-cols-2 p-10 gap-10">
+        {/* Form Section */}
+        <FormSection />
+        {/* Preview Section */}
+        <ResumePreview />
+      </div>
+    </ResumeInfoContext.Provider>
+  );
 }
 
 export default EditResume;
