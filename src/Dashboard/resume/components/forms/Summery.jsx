@@ -4,8 +4,11 @@ import { ResumeInfoContext } from "@/context/ResumeInfoContext";
 import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import GlobalApi from "./../../../../../service/GlobalApi";
-import { LoaderCircle } from "lucide-react";
+import { Brain, LoaderCircle } from "lucide-react";
+import { AIChatSession } from "./../../../../../service/AIModal";
 
+const prompt =
+  "Job Title :{jobTitle}, Depends on job title give me summery for my resume within 4-5 lines";
 function Summery(enabledNext) {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
   const [summery, setSummery] = useState();
@@ -19,6 +22,15 @@ function Summery(enabledNext) {
         summery: summery,
       });
   }, [summery]);
+
+  const GenerateSummeryFromAI = async () => {
+    setLoading(true);
+    const PROMPT = prompt.replace("{jobTitle}", resumeInfo?.jobTitle);
+    console.log(PROMPT);
+    const result = await AIChatSession.sendMessage(PROMPT);
+    console.log(result.response.text());
+    setLoading(false);
+  };
 
   const onSave = (e) => {
     e.preventDefault();
@@ -53,9 +65,13 @@ function Summery(enabledNext) {
             <label>Add Summery</label>
             <Button
               variant="outline"
+              onClick={() => GenerateSummeryFromAI()}
+              type="button"
               size="sm"
-              className="border-primary text-primary"
+              className="border-primary text-primary flex gap-2"
             >
+              {" "}
+              <Brain className="h-4 w-4" />
               Generate from AI
             </Button>
           </div>
