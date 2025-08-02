@@ -17,7 +17,7 @@ function ExperiencePreview({ resumeInfo }) {
         }}
       />
 
-      {resumeInfo?.experience.map((experience, index) => (
+      {resumeInfo?.Experience?.map((experience, index) => (
         <div key={index} className="my-5">
           <h2
             className="text-sm font-bold"
