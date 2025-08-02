@@ -2,7 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import React, { useContext, useEffect, useState } from "react";
 import RichTextEditor from "../RichTextEditor";
+import { useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { ResumeInfoContext } from "@/context/ResumeInfoContext";
+import { LoaderCircle } from "lucide-react";
+import GlobalApi from "./../../../../../service/GlobalApi";
 
 const formField = {
   title: "",
@@ -14,23 +18,37 @@ const formField = {
   workSummery: "",
 };
 function Experience() {
-  const [experienceList, setExperienceList] = useState([
-    {
-      formField,
-    },
-  ]);
-
+  const [experienceList, setExperienceList] = useState([]);
+  const params = useParams();
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
+  const [loading, setLoading] = useState(false);
+
+  // useEffect(() => {
+  //   resumeInfo?.Experience.length > 0 &&
+  //     setExperienceList(resumeInfo?.Experience);
+  // }, []);
 
   const handleChange = (index, event) => {
     const newEntries = experienceList.slice();
     const { name, value } = event.target;
     newEntries[index][name] = value;
+    console.log(newEntries);
     setExperienceList(newEntries);
   };
 
   const AddNewExperience = () => {
-    setExperienceList([...experienceList, formField]);
+    setExperienceList([
+      ...experienceList,
+      {
+        title: "",
+        companyName: "",
+        city: "",
+        state: "",
+        startDate: "",
+        endDate: "",
+        workSummery: "",
+      },
+    ]);
   };
 
   const RemoveExperience = () => {
@@ -49,6 +67,28 @@ function Experience() {
       experience: experienceList,
     });
   }, [experienceList]);
+
+  const onSave = () => {
+    setLoading(true);
+    const data = {
+      data: {
+        experience: experienceList.map(({ id, ...rest }) => rest),
+      },
+    };
+
+    console.log(experienceList);
+
+    GlobalApi.UpdateResumeDetail(params?.resumeId, data).then(
+      (res) => {
+        console.log(res);
+        setLoading(false);
+        toast("Details updated !");
+      },
+      (error) => {
+        setLoading(false);
+      }
+    );
+  };
 
   return (
     <div>
@@ -134,7 +174,9 @@ function Experience() {
             </Button>
           </div>
 
-          <Button>Save</Button>
+          <Button disabled={loading} onClick={() => onSave()}>
+            {loading ? <LoaderCircle className="animate-spin" /> : "Save"}
+          </Button>
         </div>
       </div>
     </div>
