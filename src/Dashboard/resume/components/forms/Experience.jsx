@@ -64,7 +64,7 @@ function Experience() {
   useEffect(() => {
     setResumeInfo({
       ...resumeInfo,
-      experience: experienceList,
+      Experience: experienceList,
     });
   }, [experienceList]);
 

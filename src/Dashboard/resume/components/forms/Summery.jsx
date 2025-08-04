@@ -42,7 +42,7 @@ function Summery(enabledNext) {
         summery: summery,
       },
     };
-    console.log(params?.resumeID); // resumeID
+
     GlobalApi.UpdateResumeDetail(params?.resumeID, data).then(
       (resp) => {
         console.log(resp);
@@ -80,6 +80,8 @@ function Summery(enabledNext) {
           <Textarea
             className="mt-5"
             required
+            value={summery}
+            defaultValue={summery ? summery : resumeInfo?.summery}
             onChange={(e) => setSummery(e.target.value)}
           />
           <div className="mt-2 flex justify-end">
@@ -90,12 +92,18 @@ function Summery(enabledNext) {
         </form>
       </div>
       {aiGeneratedSummeryList && (
-        <div>
+        <div className="my-5">
           <h2 className="font-bold text-lg">Suggestions</h2>
           {aiGeneratedSummeryList.map((item, index) => (
-            <div>
-              <h2 className="font-bold my-1">Level: {item?.experienceLevel}</h2>
-              <p>{item?.summery}</p>
+            <div
+              key={index}
+              onClick={() => setSummery(item?.summary)}
+              className="p-5 shadow-lg my-4 rounded-lg cursor-pointer"
+            >
+              <h2 className="font-bold my-1 text-primary">
+                Level: {item?.experience_level}
+              </h2>
+              <p>{item?.summary}</p>
             </div>
           ))}
         </div>

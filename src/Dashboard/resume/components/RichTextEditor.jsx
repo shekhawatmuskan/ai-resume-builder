@@ -28,14 +28,14 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultvalue }) {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
   const [loading, setLoading] = useState(false);
   const GenerateSummeryFromAI = async () => {
-    setLoading(true);
     if (!resumeInfo.experience[index].title) {
-      toast("Please Add position Title");
+      toast("Please Add Position Title");
       return;
     }
+    setLoading(true);
     const prompt = PROMPT.replace(
       "{positionTitle}",
-      resumeInfo.experience[index].title
+      resumeInfo.Experience[index].title
     );
     const result = await AIChatSession.sendMessage(prompt);
     console.log(result.response.text());

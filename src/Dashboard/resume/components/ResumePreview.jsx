@@ -23,13 +23,19 @@ function ResumePreview() {
       <SummeryPreview resumeInfo={resumeInfo} />
 
       {/**Professional Experience */}
-      <ExperiencePreview resumeInfo={resumeInfo} />
+      {resumeInfo?.Experience?.length > 0 && (
+        <ExperiencePreview resumeInfo={resumeInfo} />
+      )}
 
       {/** Educational */}
-      <EducationalPreview resumeInfo={resumeInfo} />
+      {resumeInfo?.education?.length > 0 && (
+        <EducationalPreview resumeInfo={resumeInfo} />
+      )}
 
       {/** Skills */}
-      <SkillsPreview resumeInfo={resumeInfo} />
+      {resumeInfo?.skills?.length > 0 && (
+        <SkillsPreview resumeInfo={resumeInfo} />
+      )}
     </div>
   );
 }

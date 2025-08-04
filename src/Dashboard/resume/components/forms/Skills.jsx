@@ -24,7 +24,7 @@ function Skills() {
 
   useEffect(() => {
     resumeInfo && setSkillsList(resumeInfo?.skills);
-  }, [resumeInfo]);
+  }, []);
 
   const handleChange = (index, name, value) => {
     const newEntries = skillsList.slice();
@@ -78,7 +78,7 @@ function Skills() {
               <label className="text-xs">Name</label>
               <Input
                 className="w-full"
-                defaultValue={item?.name}
+                defaultValue={item.name}
                 onchange={(e) => handleChange(index, "name", e.target.value)}
               />
             </div>

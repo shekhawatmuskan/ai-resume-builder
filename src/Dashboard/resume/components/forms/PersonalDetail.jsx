@@ -14,7 +14,7 @@ function PersonalDetail({ enabledNext }) {
   const [formData, setFormData] = useState();
   const [loading, setLoading] = useState(false);
   useEffect(() => {
-    console.log(params);
+    console.log("---", resumeInfo);
   }, []);
 
   const handleInputChange = (e) => {
@@ -37,7 +37,7 @@ function PersonalDetail({ enabledNext }) {
     const data = {
       data: formData,
     };
-    console.log(params?.resumeID); // resumeID
+
     GlobalApi.UpdateResumeDetail(params?.resumeID, data).then(
       (resp) => {
         console.log(resp);

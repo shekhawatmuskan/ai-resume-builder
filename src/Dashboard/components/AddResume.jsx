@@ -22,7 +22,7 @@ function AddResume() {
   const [loading, setLoading] = useState(false);
   const navigation = useNavigate();
 
-  const onCreate = () => {
+  const onCreate =async () => {
     setLoading(true);
     const uuid = uuidv4();
     const data = {
