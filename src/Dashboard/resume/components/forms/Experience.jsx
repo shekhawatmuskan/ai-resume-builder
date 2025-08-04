@@ -8,36 +8,47 @@ import { ResumeInfoContext } from "@/context/ResumeInfoContext";
 import { LoaderCircle } from "lucide-react";
 import GlobalApi from "./../../../../../service/GlobalApi";
 
-const formField = {
-  title: "",
-  companyName: "",
-  city: "",
-  state: "",
-  startDate: "",
-  endDate: "",
-  workSummery: "",
-};
-function Experience() {
+const Experience = () => {
   const [experienceList, setExperienceList] = useState([]);
   const params = useParams();
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    resumeInfo?.Experience.length > 0 &&
-      setExperienceList(resumeInfo?.Experience);
+    if (Array.isArray(resumeInfo?.Experience)) {
+      setExperienceList(resumeInfo.Experience);
+    } else {
+      setExperienceList([]);
+    }
   }, [resumeInfo]);
 
   const handleChange = (index, event) => {
-    const newEntries = experienceList.slice();
     const { name, value } = event.target;
+    const newEntries = [...experienceList];
     newEntries[index][name] = value;
-    console.log(newEntries);
     setExperienceList(newEntries);
+
+    // 🔧 Live update context for preview
+    setResumeInfo((prev) => ({
+      ...prev,
+      Experience: newEntries,
+    }));
+  };
+
+  const handleRichTextEditor = (e, name, index) => {
+    const newEntries = [...experienceList];
+    newEntries[index][name] = e.target.value;
+    setExperienceList(newEntries);
+
+    // 🔧 Update context on summary change too
+    setResumeInfo((prev) => ({
+      ...prev,
+      Experience: newEntries,
+    }));
   };
 
   const AddNewExperience = () => {
-    setExperienceList([
+    const updatedList = [
       ...experienceList,
       {
         title: "",
@@ -48,46 +59,45 @@ function Experience() {
         endDate: "",
         workSummery: "",
       },
-    ]);
+    ];
+    setExperienceList(updatedList);
+    setResumeInfo((prev) => ({
+      ...prev,
+      Experience: updatedList,
+    }));
   };
 
   const RemoveExperience = () => {
-    setExperienceList((experienceList) => [...experienceList.slice(0, -1)]);
+    const updatedList = experienceList.slice(0, -1);
+    setExperienceList(updatedList);
+    setResumeInfo((prev) => ({
+      ...prev,
+      Experience: updatedList,
+    }));
   };
-
-  const handleRichTextEditor = (e, name, index) => {
-    const newEntries = experienceList.slice();
-    newEntries[index][name] = e.target.value;
-    setExperienceList(newEntries);
-  };
-
-  useEffect(() => {
-    setResumeInfo({
-      ...resumeInfo,
-      Experience: experienceList,
-    });
-  }, [experienceList]);
 
   const onSave = () => {
     setLoading(true);
+
     const data = {
       data: {
-        Experience: experienceList.map(({ id, ...rest }) => rest),
+        Experience: experienceList,
       },
     };
 
-    console.log(experienceList);
-
-    GlobalApi.UpdateResumeDetail(params?.resumeId, data).then(
-      (res) => {
-        console.log(res);
+    GlobalApi.UpdateResumeDetail(params?.resumeID, data)
+      .then((res) => {
         setLoading(false);
-        toast("Details updated !");
-      },
-      (error) => {
+        toast("Details updated!");
+        setResumeInfo((prev) => ({
+          ...prev,
+          Experience: experienceList,
+        }));
+      })
+      .catch(() => {
         setLoading(false);
-      }
-    );
+        toast.error("Something went wrong!");
+      });
   };
 
   return (
@@ -95,6 +105,7 @@ function Experience() {
       <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
         <h2 className="font-bold text-lg">Professional Experience</h2>
         <p>Add Your Previous Job experience</p>
+
         <div>
           {experienceList.map((item, index) => (
             <div key={index}>
@@ -104,7 +115,7 @@ function Experience() {
                   <Input
                     name="title"
                     onChange={(event) => handleChange(index, event)}
-                    defaultValue={item?.title}
+                    value={item?.title}
                   />
                 </div>
                 <div>
@@ -112,7 +123,7 @@ function Experience() {
                   <Input
                     name="companyName"
                     onChange={(event) => handleChange(index, event)}
-                    defaultValue={item?.companyName}
+                    value={item?.companyName}
                   />
                 </div>
                 <div>
@@ -120,15 +131,15 @@ function Experience() {
                   <Input
                     name="city"
                     onChange={(event) => handleChange(index, event)}
-                    defaultValue={item?.city}
+                    value={item?.city}
                   />
                 </div>
                 <div>
-                  <label className="text-xs"> State</label>
+                  <label className="text-xs"> State </label>
                   <Input
                     name="state"
                     onChange={(event) => handleChange(index, event)}
-                    defaultValue={item?.state}
+                    value={item?.state}
                   />
                 </div>
                 <div>
@@ -137,7 +148,7 @@ function Experience() {
                     type="date"
                     name="startDate"
                     onChange={(event) => handleChange(index, event)}
-                    defaultValue={item?.startDate}
+                    value={item?.startDate}
                   />
                 </div>
                 <div>
@@ -146,11 +157,10 @@ function Experience() {
                     type="date"
                     name="endDate"
                     onChange={(event) => handleChange(index, event)}
-                    defaultValue={item?.endDate}
+                    value={item?.endDate}
                   />
                 </div>
                 <div className="col-span-2">
-                  {/* Work Summery */}
                   <RichTextEditor
                     index={index}
                     defaultValue={item?.workSummery}
@@ -163,6 +173,7 @@ function Experience() {
             </div>
           ))}
         </div>
+
         <div className="flex justify-between">
           <div className="flex gap-2">
             <Button
@@ -176,18 +187,19 @@ function Experience() {
               variant="outline"
               onClick={RemoveExperience}
               className="text-primary"
+              disabled={experienceList.length === 0}
             >
               - Remove
             </Button>
           </div>
 
-          <Button disabled={loading} onClick={() => onSave()}>
+          <Button disabled={loading} onClick={onSave}>
             {loading ? <LoaderCircle className="animate-spin" /> : "Save"}
           </Button>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default Experience;
