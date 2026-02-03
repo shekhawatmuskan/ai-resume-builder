@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, { useContext, useState } from "react";
 import {
   Popover,
   PopoverContent,
@@ -7,8 +7,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { LayoutGrid } from "lucide-react";
 import { ResumeInfoContext } from "@/context/ResumeInfoContext";
+import * as GlobalApi from "./../../../../service/GlobalApi";
 import { useParams } from "react-router-dom";
-import GlobalApi from "./../../../../service/GlobalApi";
 import { toast } from "sonner";
 
 function ThemeColor() {
@@ -36,67 +36,46 @@ function ThemeColor() {
   ];
 
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
-  const [selectedColor, setSelectedColor] = useState(
-    resumeInfo?.themeColor || ""
-  );
-  const { resumeId } = useParams();
-
-  const isUpdating = useRef(false);
-
-  const onColorSelect = async (color) => {
-    if (color === selectedColor || isUpdating.current) return;
-
-    isUpdating.current = true;
+  const [selectedColor, setSelectedColor] = useState();
+  const { resumeID } = useParams();
+  const onColorSelect = (color) => {
     setSelectedColor(color);
-
-    // Only update context if different
-    if (resumeInfo?.themeColor !== color) {
-      setResumeInfo((prev) => ({
-        ...prev,
+    setResumeInfo({
+      ...resumeInfo,
+      themeColor: color,
+    });
+    const data = {
+      data: {
         themeColor: color,
-      }));
-    }
-
-    const data = { data: { themeColor: color } };
-    try {
-      await GlobalApi.UpdateResumeDetail(resumeId, data);
-      toast("Theme Color Updated!");
-    } catch (err) {
-      console.error("Error updating theme color", err);
-      toast.error("Failed to update theme.");
-    } finally {
-      setTimeout(() => {
-        isUpdating.current = false;
-      }, 300);
-    }
+      },
+    };
+    GlobalApi.UpdateResumeDetail(resumeID, data).then((resp) => {
+      console.log(resp);
+      toast("Theme Color Updated");
+    });
   };
-
-  useEffect(() => {
-    if (!resumeInfo?.themeColor) return;
-
-    if (resumeInfo.themeColor !== selectedColor) {
-      setSelectedColor(resumeInfo.themeColor);
-    }
-  }, [resumeInfo?.themeColor]);
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="flex gap-2">
+          {" "}
           <LayoutGrid /> Theme
         </Button>
       </PopoverTrigger>
       <PopoverContent>
-        <h2 className="mb-2 text-sm font-bold">Select Theme color</h2>
+        <h2 className="mb-2 text-sm font-bold">Select Theme Color</h2>
         <div className="grid grid-cols-5 gap-3">
           {colors.map((item, index) => (
             <div
-              key={index}
               onClick={() => onColorSelect(item)}
-              className={`h-5 w-5 rounded-full cursor-pointer 
-                ${selectedColor === item ? "border-2 border-black" : "border"} 
-                hover:border-black`}
-              style={{ background: item }}
+              className={`h-5 w-5 rounded-full cursor-pointer
+             hover:border-black border
+             ${selectedColor == item && "border border-black"}
+             `}
+              style={{
+                background: item,
+              }}
             ></div>
           ))}
         </div>

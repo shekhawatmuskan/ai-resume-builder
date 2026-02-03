@@ -11,7 +11,6 @@ function EducationalPreview({ resumeInfo }) {
       >
         Education
       </h2>
-
       <hr
         style={{
           borderColor: resumeInfo?.themeColor,

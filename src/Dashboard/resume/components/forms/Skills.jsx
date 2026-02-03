@@ -1,15 +1,14 @@
+import { Input } from "@/components/ui/input";
 import React, { useContext, useEffect, useState } from "react";
 import { Rating } from "@smastrom/react-rating";
-import { Input } from "@/components/ui/input";
 
 import "@smastrom/react-rating/style.css";
 import { Button } from "@/components/ui/button";
 import { LoaderCircle } from "lucide-react";
 import { ResumeInfoContext } from "@/context/ResumeInfoContext";
-import GlobalApi from "./../../../../../service/GlobalApi";
+import * as GlobalApi from "./../../../../../service/GlobalApi";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
-
 function Skills() {
   const [skillsList, setSkillsList] = useState([
     {
@@ -17,8 +16,8 @@ function Skills() {
       rating: 0,
     },
   ]);
+  const { resumeID } = useParams();
 
-  const { resumeId } = useParams();
   const [loading, setLoading] = useState(false);
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
 
@@ -28,16 +27,22 @@ function Skills() {
 
   const handleChange = (index, name, value) => {
     const newEntries = skillsList.slice();
+
     newEntries[index][name] = value;
     setSkillsList(newEntries);
   };
 
   const AddNewSkills = () => {
-    setSkillsList([...skillsList, { name: "", rating: 0 }]);
+    setSkillsList([
+      ...skillsList,
+      {
+        name: "",
+        rating: 0,
+      },
+    ]);
   };
-
   const RemoveSkills = () => {
-    setSkillsList(skillsList.slice(0, -1));
+    setSkillsList((skillsList) => skillsList.slice(0, -1));
   };
 
   const onSave = () => {
@@ -47,22 +52,23 @@ function Skills() {
         skills: skillsList.map(({ id, ...rest }) => rest),
       },
     };
-    GlobalApi.UpdateResumeDetail(resumeId, data).then(
+
+    GlobalApi.UpdateResumeDetail(resumeID, data).then(
       (resp) => {
         console.log(resp);
         setLoading(false);
-        toast("Details Updated !");
+        toast("Details updated !");
       },
       (error) => {
         setLoading(false);
-        toast("Server Error, Try Again!");
-      }
+        toast("Server Error, Try again!");
+      },
     );
   };
 
   useEffect(() => {
     setResumeInfo({
-      ...setResumeInfo,
+      ...resumeInfo,
       skills: skillsList,
     });
   }, [skillsList]);
@@ -73,13 +79,13 @@ function Skills() {
 
       <div>
         {skillsList.map((item, index) => (
-          <div className="flex justify-between mb-2 border rounded-lg p-3">
+          <div className="flex justify-between mb-2 border rounded-lg p-3 ">
             <div>
               <label className="text-xs">Name</label>
               <Input
                 className="w-full"
                 defaultValue={item.name}
-                onchange={(e) => handleChange(index, "name", e.target.value)}
+                onChange={(e) => handleChange(index, "name", e.target.value)}
               />
             </div>
             <Rating
@@ -97,19 +103,20 @@ function Skills() {
             onClick={AddNewSkills}
             className="text-primary"
           >
-            + Add More Skills
+            {" "}
+            + Add More Skill
           </Button>
           <Button
             variant="outline"
             onClick={RemoveSkills}
             className="text-primary"
           >
+            {" "}
             - Remove
           </Button>
         </div>
-
         <Button disabled={loading} onClick={() => onSave()}>
-          {loading ? <LoaderCircle className="aimate-spin" /> : "Save"}
+          {loading ? <LoaderCircle className="animate-spin" /> : "Save"}
         </Button>
       </div>
     </div>

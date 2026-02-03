@@ -4,7 +4,7 @@ function PersonalDetailPreview({ resumeInfo }) {
   return (
     <div>
       <h2
-        className="font-bold text-xl text-center "
+        className="font-bold text-xl text-center"
         style={{
           color: resumeInfo?.themeColor,
         }}
@@ -22,6 +22,7 @@ function PersonalDetailPreview({ resumeInfo }) {
       >
         {resumeInfo?.address}
       </h2>
+
       <div className="flex justify-between">
         <h2
           className="font-normal text-xs"

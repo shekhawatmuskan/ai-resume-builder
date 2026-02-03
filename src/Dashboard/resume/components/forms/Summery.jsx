@@ -3,113 +3,157 @@ import { Textarea } from "@/components/ui/textarea";
 import { ResumeInfoContext } from "@/context/ResumeInfoContext";
 import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import GlobalApi from "./../../../../../service/GlobalApi";
+import * as GlobalApi from "./../../../../../service/GlobalApi";
 import { Brain, LoaderCircle } from "lucide-react";
-import { AIChatSession } from "./../../../../../service/AIModal";
 import { toast } from "sonner";
+import { generateAIContent } from "./../../../../../service/AIModal";
 
-const prompt =
-  "Job Title :{jobTitle}, Depends on job title give me summery for my resume within 4-5 lines in JSON format with field experience level and summery with experience level for fresher,mid-level,experienced";
+/* ---------- AI PROMPT TEMPLATE ---------- */
+const PROMPT = `
+Job Title: {jobTitle}
+
+Return ONLY valid JSON.
+Give 3 professional resume summaries (3–4 lines each) for:
+- Fresher
+- Mid Level
+- Senior Level
+
+Format:
+[
+  {
+    "experience_level": "",
+    "summary": ""
+  }
+]
+`;
 
 function Summery({ enabledNext }) {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
-  const [summery, setSummery] = useState();
+  const [summery, setSummery] = useState(resumeInfo?.summery || "");
   const [loading, setLoading] = useState(false);
+  const [aiGeneratedSummeryList, setAiGenerateSummeryList] = useState([]);
   const params = useParams();
-  const [aiGeneratedSummeryList, setAiGenerateSummeryList] = useState();
 
+  /* ---------- Sync summary with context ---------- */
   useEffect(() => {
     if (summery) {
-      setResumeInfo((prev) => ({
-        ...prev,
-        summery: summery,
-      }));
+      setResumeInfo({
+        ...resumeInfo,
+        summery,
+      });
     }
   }, [summery]);
 
+  /* ---------- Generate Summary from AI ---------- */
   const GenerateSummeryFromAI = async () => {
-    setLoading(true);
-    const PROMPT = prompt.replace("{jobTitle}", resumeInfo?.jobTitle ?? "");
-    try {
-      const result = await AIChatSession.sendMessage(PROMPT);
-      const parsed = JSON.parse(result.response.text());
-      setAiGenerateSummeryList(parsed);
-    } catch (error) {
-      toast.error("Failed to generate summary from AI");
+    if (!resumeInfo?.jobTitle) {
+      toast("Please add Job Title first");
+      return;
     }
-    setLoading(false);
+
+    try {
+      setLoading(true);
+
+      const finalPrompt = PROMPT.replace("{jobTitle}", resumeInfo.jobTitle);
+
+      const text = await generateAIContent(finalPrompt);
+      const parsed = JSON.parse(text);
+
+      setAiGenerateSummeryList(parsed);
+    } catch (err) {
+      console.error(err);
+      toast("AI generation failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const onSave = (e) => {
+  /* ---------- Save Summary ---------- */
+  const onSave = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     const data = {
       data: {
-        summery: summery,
+        summery,
       },
     };
 
-    GlobalApi.UpdateResumeDetail(params?.resumeID, data).then(
-      (resp) => {
-        console.log(resp);
-        enabledNext(true);
-        setLoading(false);
-        toast("Details Updated");
-      },
-      (error) => {
-        setLoading(false);
-        toast.error("Something went wrong!");
-      }
-    );
+    try {
+      await GlobalApi.UpdateResumeDetail(params?.resumeID, data);
+      enabledNext(true);
+      toast("Details updated");
+    } catch (err) {
+      console.error(err);
+      toast("Failed to save details");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div>
+      {/* ---------- Summary Form ---------- */}
       <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
-        <h2 className="font-bold text-lg">Summary Detail</h2>
-        <p>Add summary for your job title</p>
+        <h2 className="font-bold text-lg">Summary</h2>
+        <p>Add a professional summary for your job title</p>
 
         <form className="mt-7" onSubmit={onSave}>
           <div className="flex justify-between items-end">
             <label>Add Summary</label>
             <Button
               variant="outline"
-              onClick={GenerateSummeryFromAI}
               type="button"
               size="sm"
+              onClick={GenerateSummeryFromAI}
               className="border-primary text-primary flex gap-2"
+              disabled={loading}
             >
-              <Brain className="h-4 w-4" />
-              Generate from AI
+              {loading ? (
+                <LoaderCircle className="animate-spin h-4 w-4" />
+              ) : (
+                <>
+                  <Brain className="h-4 w-4" />
+                  Generate from AI
+                </>
+              )}
             </Button>
           </div>
+
           <Textarea
             className="mt-5"
             required
-            value={summery ?? resumeInfo?.summery ?? ""}
+            value={summery}
             onChange={(e) => setSummery(e.target.value)}
           />
-          <div className="mt-2 flex justify-end">
+
+          <div className="mt-4 flex justify-end">
             <Button type="submit" disabled={loading}>
-              {loading ? <LoaderCircle className="animate-spin" /> : "Save"}
+              {loading ? (
+                <LoaderCircle className="animate-spin h-4 w-4" />
+              ) : (
+                "Save"
+              )}
             </Button>
           </div>
         </form>
       </div>
 
-      {aiGeneratedSummeryList && (
+      {/* ---------- AI Suggestions ---------- */}
+      {aiGeneratedSummeryList.length > 0 && (
         <div className="my-5">
-          <h2 className="font-bold text-lg">Suggestions</h2>
+          <h2 className="font-bold text-lg">AI Suggestions</h2>
+
           {aiGeneratedSummeryList.map((item, index) => (
             <div
               key={index}
-              onClick={() => setSummery(item?.summary)}
-              className="p-5 shadow-lg my-4 rounded-lg cursor-pointer"
+              onClick={() => setSummery(item.summary)}
+              className="p-5 shadow-lg my-4 rounded-lg cursor-pointer hover:border-primary border"
             >
               <h2 className="font-bold my-1 text-primary">
-                Level: {item?.experience_level}
+                Level: {item.experience_level}
               </h2>
-              <p>{item?.summary}</p>
+              <p>{item.summary}</p>
             </div>
           ))}
         </div>

@@ -3,28 +3,44 @@ import { useParams } from "react-router-dom";
 import FormSection from "../../components/FormSection";
 import ResumePreview from "../../components/ResumePreview";
 import { ResumeInfoContext } from "@/context/ResumeInfoContext";
-import dummy from "@/Data/dummy";
-import GlobalApi from "./../../../../../service/GlobalApi";
+import * as GlobalApi from "./../../../../../service/GlobalApi";
 
 function EditResume() {
-  const { resumeId } = useParams();
-  const [resumeInfo, setResumeInfo] = useState();
+  const { resumeID } = useParams();
+  const [resumeInfo, setResumeInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    GetResumeInfo();
-  }, []);
+    if (resumeID) {
+      GetResumeInfo();
+    }
+  }, [resumeID]);
 
-  const GetResumeInfo = () => {
-    GlobalApi.GetResumeById(resumeId).then((resp) => {
-      console.log(resp.data.data);
-      setResumeInfo(resp.data.data);
-    });
+  const GetResumeInfo = async () => {
+    try {
+      setLoading(true);
+      const resp = await GlobalApi.GetResumeById(resumeID);
+
+      // Strapi returns array even for single record
+      setResumeInfo(resp.data.data[0]);
+    } catch (error) {
+      console.error("Failed to fetch resume:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading) {
+    return <div className="p-10">Loading resume...</div>;
+  }
 
   return (
     <ResumeInfoContext.Provider value={{ resumeInfo, setResumeInfo }}>
       <div className="grid grid-cols-1 md:grid-cols-2 p-10 gap-10">
+        {/* Form Section */}
         <FormSection />
+
+        {/* Preview Section */}
         <ResumePreview />
       </div>
     </ResumeInfoContext.Provider>

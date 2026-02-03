@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ResumeInfoContext } from "@/context/ResumeInfoContext";
 import { Brain, LoaderCircle } from "lucide-react";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   BtnBold,
   BtnBulletList,
@@ -10,62 +10,63 @@ import {
   BtnLink,
   BtnNumberedList,
   BtnStrikeThrough,
+  BtnStyles,
   BtnUnderline,
   Editor,
   EditorProvider,
+  HtmlButton,
   Separator,
   Toolbar,
 } from "react-simple-wysiwyg";
-import { AIChatSession } from "./../../../../service/AIModal";
+import { generateAIContent } from "./../../../../service/AIModal";
 import { toast } from "sonner";
-
 const PROMPT =
-  "position title: {positionTitle} , Depends on position title give me 5-7 bullet points for my experience in resume (Please do not add experience level and No JSON array), give me result in HTML tags";
-
+  "position titile: {positionTitle} , Depends on position title give me 5-7 bullet points for my experience in resume (Please do not add experince level and No JSON array) , give me result in HTML tags";
 function RichTextEditor({ onRichTextEditorChange, index, defaultValue }) {
-  const [value, setValue] = useState(defaultValue || "");
-  const { resumeInfo } = useContext(ResumeInfoContext);
+  const [value, setValue] = useState(defaultValue);
+  const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
   const [loading, setLoading] = useState(false);
-
   const GenerateSummeryFromAI = async () => {
-    const jobTitle = resumeInfo?.Experience?.[index]?.title;
-
-    if (!jobTitle) {
-      toast("Please add Position Title");
+    if (!resumeInfo?.Experience[index]?.title) {
+      toast("Please Add Position Title");
       return;
     }
 
-    setLoading(true);
-    const prompt = PROMPT.replace("{positionTitle}", jobTitle);
-
     try {
-      const result = await AIChatSession.sendMessage(prompt);
-      const resp = await result.response.text();
-      setValue(resp);
-      onRichTextEditorChange({ target: { value: resp } });
-    } catch (error) {
-      toast.error("Failed to generate summary from AI");
-    }
+      setLoading(true);
 
-    setLoading(false);
+      const prompt = PROMPT.replace(
+        "{positionTitle}",
+        resumeInfo.Experience[index].title,
+      );
+
+      const resp = await generateAIContent(prompt);
+
+      setValue(resp);
+    } catch (err) {
+      console.error(err);
+      toast("AI generation failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div>
       <div className="flex justify-between my-2">
-        <label className="text-xs">Summary</label>
+        <label className="text-xs">Summery</label>
         <Button
           variant="outline"
           size="sm"
           onClick={GenerateSummeryFromAI}
+          disabled={loading}
           className="flex gap-2 border-primary text-primary"
         >
           {loading ? (
             <LoaderCircle className="animate-spin" />
           ) : (
             <>
-              <Brain className="h-4 w-4" />
-              Generate from AI
+              <Brain className="h-4 w-4" /> Generate from AI
             </>
           )}
         </Button>

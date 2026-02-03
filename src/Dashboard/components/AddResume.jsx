@@ -11,9 +11,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { v4 as uuidv4 } from "uuid";
+import * as GlobalApi from "./../../../service/GlobalApi.js";
 import { useUser } from "@clerk/clerk-react";
-import GlobalApi from "./../../../service/GlobalApi";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 function AddResume() {
   const [openDialog, setOpenDialog] = useState(false);
@@ -21,8 +21,7 @@ function AddResume() {
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const navigation = useNavigate();
-
-  const onCreate =async () => {
+  const onCreate = async () => {
     setLoading(true);
     const uuid = uuidv4();
     const data = {
@@ -40,25 +39,24 @@ function AddResume() {
         if (resp) {
           setLoading(false);
           navigation(
-            "/dashboard/resume/" + resp.data.data.documentId + "/edit"
+            "/dashboard/resume/" + resp.data.data.documentId + "/edit",
           );
         }
       },
       (error) => {
         setLoading(false);
-      }
+      },
     );
   };
-
   return (
     <div>
       <div
-        className="p-14 py-24 border
-       items-center flex
-       justify-center bg-secondary 
-       rounded-lg h-[280px]
-       hover:scale-105 transition-all hover:shadow-md
-       cursor-pointer border-dashed"
+        className="p-14 py-24 border 
+        items-center flex 
+        justify-center bg-secondary
+        rounded-lg h-[280px]
+        hover:scale-105 transition-all hover:shadow-md
+        cursor-pointer border-dashed"
         onClick={() => setOpenDialog(true)}
       >
         <PlusSquare />
@@ -69,7 +67,7 @@ function AddResume() {
           <DialogHeader>
             <DialogTitle>Create New Resume</DialogTitle>
             <DialogDescription>
-              <p>Add a title for your new resume</p>
+              Add a title for your new resume
               <Input
                 className="my-2"
                 placeholder="Ex.Full Stack resume"

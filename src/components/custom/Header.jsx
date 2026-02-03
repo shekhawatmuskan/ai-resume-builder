@@ -15,7 +15,6 @@ function Header() {
           height={100}
         />
       </Link>
-
       {isSignedIn ? (
         <div className="flex gap-2 items-center">
           <Link to={"/dashboard"}>

@@ -1,32 +1,58 @@
 import axios from "axios";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const API_KEY = import.meta.env.VITE_STRAPI_API_KEY;
+/* ================= AI CONFIG ================= */
 
-const axiosClient = axios.create({
-  baseURL: "http://localhost:1337/api",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${API_KEY}`,
-  },
+const apiKey = import.meta.env.VITE_GOOGLE_AI_API_KEY;
+const genAI = new GoogleGenerativeAI(apiKey);
+
+const model = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash",
 });
 
-const CreateNewResume = (data) => axiosClient.post("/user-resumes", data);
+const generationConfig = {
+  temperature: 1,
+  topP: 0.95,
+  topK: 64,
+  maxOutputTokens: 8192,
+  responseMimeType: "application/json",
+};
 
-const GetUserResumes = (userEmail) =>
-  axiosClient.get("/user-resumes?filters[userEmail][$eq]=" + userEmail);
+export const AIChatSession = model.startChat({
+  generationConfig,
+  history: [],
+});
 
-const UpdateResumeDetail = (id, data) =>
-  axiosClient.put("/user-resumes/" + id, data);
+/* ================= STRAPI API CONFIG ================= */
 
-const GetResumeById = (id) =>
-  axiosClient.get("/user-resumes/" + id + "?populate=*");
+const BASE_URL = "http://localhost:1337/api";
 
-const DeleteResumeById = (id) => axiosClient.delete("/user-resumes/" + id);
+/**
+ * Get all resumes for a specific user
+ */
+export const GetUserResumes = (email) => {
+  return axios.get(`${BASE_URL}/user-resumes?filters[userEmail][$eq]=${email}`);
+};
 
-export default {
-  CreateNewResume,
-  GetUserResumes,
-  UpdateResumeDetail,
-  GetResumeById,
-  DeleteResumeById,
+/**
+ * Create a new resume
+ */
+export const CreateNewResume = (data) => {
+  return axios.post(`${BASE_URL}/user-resumes`, data);
+};
+
+/**
+ * Get resume by documentId
+ * (Used in Edit Resume page)
+ */
+export const GetResumeById = (documentId) => {
+  return axios.get(
+    `${BASE_URL}/user-resumes?filters[documentId][$eq]=${documentId}`,
+  );
+};
+
+export const UpdateResumeDetail = (documentId, formData) => {
+  return axios.put(`${BASE_URL}/user-resumes/${documentId}`, {
+    data: formData,
+  });
 };

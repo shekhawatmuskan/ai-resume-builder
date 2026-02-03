@@ -1,12 +1,12 @@
-import { LoaderCircle, University } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import React, { useContext, useEffect, useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ResumeInfoContext } from "@/context/ResumeInfoContext";
+import { LoaderCircle } from "lucide-react";
+import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import * as GlobalApi from "./../../../../../service/GlobalApi";
 import { toast } from "sonner";
-import GlobalApi from "./../../../../../service/GlobalApi";
 
 function Education() {
   const [loading, setLoading] = useState(false);
@@ -25,8 +25,7 @@ function Education() {
 
   useEffect(() => {
     resumeInfo && setEducationalList(resumeInfo?.education);
-  }, [resumeInfo]);
-
+  }, []);
   const handleChange = (event, index) => {
     const newEntries = educationalList.slice();
     const { name, value } = event.target;
@@ -58,7 +57,7 @@ function Education() {
       },
     };
 
-    GlobalApi.UpdateResumeDetail(params.resumeId, data).then(
+    GlobalApi.UpdateResumeDetail(params.resumeID, data).then(
       (resp) => {
         console.log(resp);
         setLoading(false);
@@ -67,7 +66,7 @@ function Education() {
       (error) => {
         setLoading(false);
         toast("Server Error, Please try again!");
-      }
+      },
     );
   };
 
@@ -81,6 +80,7 @@ function Education() {
     <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
       <h2 className="font-bold text-lg">Education</h2>
       <p>Add Your educational details</p>
+
       <div>
         {educationalList.map((item, index) => (
           <div>
@@ -146,6 +146,7 @@ function Education() {
             onClick={AddNewEducation}
             className="text-primary"
           >
+            {" "}
             + Add More Education
           </Button>
           <Button
@@ -153,10 +154,10 @@ function Education() {
             onClick={RemoveEducation}
             className="text-primary"
           >
+            {" "}
             - Remove
           </Button>
         </div>
-
         <Button disabled={loading} onClick={() => onSave()}>
           {loading ? <LoaderCircle className="animate-spin" /> : "Save"}
         </Button>

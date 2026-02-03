@@ -12,7 +12,7 @@ import ThemeColor from "./ThemeColor";
 function FormSection() {
   const [activeFormIndex, setActiveFormIndex] = useState(1);
   const [enableNext, setEnableNext] = useState(true);
-  const { resumeId } = useParams();
+  const { resumeID } = useParams();
   return (
     <div>
       <div className="flex justify-between items-center">
@@ -31,21 +31,22 @@ function FormSection() {
               onClick={() => setActiveFormIndex(activeFormIndex - 1)}
             >
               {" "}
-              <ArrowLeft />
+              <ArrowLeft />{" "}
             </Button>
           )}
-
           <Button
             disabled={!enableNext}
             className="flex gap-2"
             size="sm"
             onClick={() => setActiveFormIndex(activeFormIndex + 1)}
           >
-            Next <ArrowRight />
+            {" "}
+            Next
+            <ArrowRight />{" "}
           </Button>
         </div>
       </div>
-      {/** Personal Detail  */}
+      {/* Personal Detail  */}
       {activeFormIndex == 1 ? (
         <PersonalDetail enabledNext={(v) => setEnableNext(v)} />
       ) : activeFormIndex == 2 ? (
@@ -57,8 +58,14 @@ function FormSection() {
       ) : activeFormIndex == 5 ? (
         <Skills />
       ) : activeFormIndex == 6 ? (
-        <Navigate to={"/my-resume/" + resumeId + "/view"} />
+        <Navigate to={"/my-resume/" + resumeID + "/view"} />
       ) : null}
+
+      {/* Experience  */}
+
+      {/* Educational Detail  */}
+
+      {/* Skills  */}
     </div>
   );
 }

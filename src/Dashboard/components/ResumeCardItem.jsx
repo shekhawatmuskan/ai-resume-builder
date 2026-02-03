@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import GlobalApi from "./../../../service/GlobalApi";
+import * as GlobalApi from "./../../../service/GlobalApi";
 import { toast } from "sonner";
 
 function ResumeCardItem({ resume, refreshData }) {
@@ -43,7 +43,7 @@ function ResumeCardItem({ resume, refreshData }) {
       },
       (error) => {
         setLoading(false);
-      }
+      },
     );
   };
   return (
