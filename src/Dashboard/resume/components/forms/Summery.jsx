@@ -62,7 +62,7 @@ function Summery({ enabledNext }) {
       setAiGenerateSummeryList(parsed);
     } catch (err) {
       console.error(err);
-      toast("AI generation failed");
+      toast.error(err.message || "AI generation failed");
     } finally {
       setLoading(false);
     }
@@ -74,15 +74,13 @@ function Summery({ enabledNext }) {
     setLoading(true);
 
     const data = {
-      data: {
-        summery,
-      },
+      summery,
     };
 
     try {
       await GlobalApi.UpdateResumeDetail(params?.resumeID, data);
       enabledNext(true);
-      toast("Details updated");
+      toast.success("Details updated");
     } catch (err) {
       console.error(err);
       toast("Failed to save details");
