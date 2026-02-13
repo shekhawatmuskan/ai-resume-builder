@@ -2,7 +2,7 @@ import axios from "axios";
 
 /* ================= STRAPI API CONFIG ================= */
 
-const BASE_URL = "http://localhost:1337/api";
+const BASE_URL = import.meta.env.VITE_STRAPI_BASE_URL || "http://localhost:1337/api";
 
 /**
  * Get all resumes for a specific user
