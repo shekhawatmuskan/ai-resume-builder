@@ -8,16 +8,15 @@ import * as GlobalApi from "./../../../../../service/GlobalApi";
 import { toast } from "sonner";
 
 function PersonalDetail({ enabledNext }) {
-  const params = useParams();
+  const { resumeId } = useParams();
+  const [formData, setFormData] = useState();
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
-  const [formData, setFormData] = useState({});
-
   const [loading, setLoading] = useState(false);
   useEffect(() => {
-    console.log("---", resumeInfo);
+    resumeInfo && setFormData(resumeInfo);
   }, []);
 
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     enabledNext(false);
     const { name, value } = e.target;
 
@@ -31,21 +30,30 @@ function PersonalDetail({ enabledNext }) {
     });
   };
 
-  const onSave = async (e) => {
+  const onSave = (e) => {
     e.preventDefault();
     setLoading(true);
-
-    try {
-      await GlobalApi.UpdateResumeDetail(params.resumeID, formData);
-
-      toast.success("Details updated");
-      enabledNext(true);
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to update details");
-    } finally {
+    const data = {
+      firstName: formData?.firstName,
+      lastName: formData?.lastName,
+      jobTitle: formData?.jobTitle,
+      address: formData?.address,
+      phone: formData?.phone,
+      email: formData?.email,
+    };
+    GlobalApi.UpdateResumeDetail(resumeId, data).then(
+      (resp) => {
+        console.log(resp);
+        enabledNext(true);
+        toast.success("Details updated");
+      },
+      (error) => {
+        setLoading(false);
+        toast.error("Failed to update details");
+      }
+    ).finally(() => {
       setLoading(false);
-    }
+    });
   };
 
   return (
@@ -61,7 +69,7 @@ function PersonalDetail({ enabledNext }) {
               name="firstName"
               defaultValue={resumeInfo?.firstName}
               required
-              onChange={handleInputChange}
+              onChange={handleChange}
             />
           </div>
           <div>
@@ -69,7 +77,7 @@ function PersonalDetail({ enabledNext }) {
             <Input
               name="lastName"
               required
-              onChange={handleInputChange}
+              onChange={handleChange}
               defaultValue={resumeInfo?.lastName}
             />
           </div>
@@ -79,7 +87,7 @@ function PersonalDetail({ enabledNext }) {
               name="jobTitle"
               required
               defaultValue={resumeInfo?.jobTitle}
-              onChange={handleInputChange}
+              onChange={handleChange}
             />
           </div>
           <div className="col-span-2">
@@ -88,7 +96,7 @@ function PersonalDetail({ enabledNext }) {
               name="address"
               required
               defaultValue={resumeInfo?.address}
-              onChange={handleInputChange}
+              onChange={handleChange}
             />
           </div>
           <div>
@@ -97,7 +105,7 @@ function PersonalDetail({ enabledNext }) {
               name="phone"
               required
               defaultValue={resumeInfo?.phone}
-              onChange={handleInputChange}
+              onChange={handleChange}
             />
           </div>
           <div>
@@ -106,7 +114,7 @@ function PersonalDetail({ enabledNext }) {
               name="email"
               required
               defaultValue={resumeInfo?.email}
-              onChange={handleInputChange}
+              onChange={handleChange}
             />
           </div>
         </div>

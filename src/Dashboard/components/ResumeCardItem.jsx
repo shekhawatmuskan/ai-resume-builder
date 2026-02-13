@@ -50,11 +50,11 @@ function ResumeCardItem({ resume, refreshData }) {
     <div className="">
       <Link to={"/dashboard/resume/" + resume.documentId + "/edit"}>
         <div
-          className="p-14  bg-gradient-to-b
+          className="p-14 border-block-color bg-gradient-to-b
           from-pink-100 via-purple-200 to-blue-200
         h-[280px] 
-          rounded-t-lg border-t-4
-        "
+          rounded-t-lg border-t-4 
+           border-t-[#E6E6FA]"
           style={{
             borderColor: resume?.themeColor,
           }}
@@ -69,7 +69,7 @@ function ResumeCardItem({ resume, refreshData }) {
         </div>
       </Link>
       <div
-        className="border p-3 flex justify-between  text-white rounded-b-lg shadow-lg"
+        className="border p-3 flex justify-between rounded-b-lg shadow-lg"
         style={{
           background: resume?.themeColor,
         }}
@@ -78,9 +78,11 @@ function ResumeCardItem({ resume, refreshData }) {
 
         <DropdownMenu>
           <DropdownMenuTrigger>
-            <MoreVertical className="h-4 w-4 cursor-pointer" />
+            <div className="p-1 hover:bg-white/20 rounded-md transition-all">
+              <MoreVertical className="h-4 w-4 cursor-pointer" />
+            </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
+          <DropdownMenuContent className="bg-white border shadow-md">
             <DropdownMenuItem
               onClick={() =>
                 navigation("/dashboard/resume/" + resume.documentId + "/edit")

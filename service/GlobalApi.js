@@ -24,7 +24,7 @@ export const CreateNewResume = (data) => {
  */
 export const GetResumeById = (documentId) => {
   return axios.get(
-    `${BASE_URL}/user-resumes?filters[documentId][$eq]=${documentId}`,
+    `${BASE_URL}/user-resumes?filters[documentId][$eq]=${documentId}&populate=*`,
   );
 };
 
@@ -32,4 +32,8 @@ export const UpdateResumeDetail = (documentId, formData) => {
   return axios.put(`${BASE_URL}/user-resumes/${documentId}`, {
     data: formData,
   });
+};
+
+export const DeleteResumeById = (documentId) => {
+  return axios.delete(`${BASE_URL}/user-resumes/${documentId}`);
 };

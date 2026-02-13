@@ -21,7 +21,7 @@ function ResumePreview() {
       {/* Summery  */}
       <SummeryPreview resumeInfo={resumeInfo} />
       {/* Professional Experience  */}
-      {resumeInfo?.Experience?.length > 0 && (
+      {resumeInfo?.experience?.length > 0 && (
         <ExperiencePreview resumeInfo={resumeInfo} />
       )}
       {/* Educational  */}

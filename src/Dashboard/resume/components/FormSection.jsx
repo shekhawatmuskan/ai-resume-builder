@@ -12,7 +12,7 @@ import ThemeColor from "./ThemeColor";
 function FormSection() {
   const [activeFormIndex, setActiveFormIndex] = useState(1);
   const [enableNext, setEnableNext] = useState(true);
-  const { resumeID } = useParams();
+  const { resumeId } = useParams();
   return (
     <div>
       <div className="flex justify-between items-center">
@@ -52,13 +52,13 @@ function FormSection() {
       ) : activeFormIndex == 2 ? (
         <Summery enabledNext={(v) => setEnableNext(v)} />
       ) : activeFormIndex == 3 ? (
-        <Experience />
+        <Experience enabledNext={(v) => setEnableNext(v)} />
       ) : activeFormIndex == 4 ? (
-        <Education />
+        <Education enabledNext={(v) => setEnableNext(v)} />
       ) : activeFormIndex == 5 ? (
-        <Skills />
+        <Skills enabledNext={(v) => setEnableNext(v)} />
       ) : activeFormIndex == 6 ? (
-        <Navigate to={"/my-resume/" + resumeID + "/view"} />
+        <Navigate to={"/my-resume/" + resumeId + "/view"} />
       ) : null}
 
       {/* Experience  */}

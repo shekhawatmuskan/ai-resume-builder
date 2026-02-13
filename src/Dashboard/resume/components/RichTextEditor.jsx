@@ -21,13 +21,13 @@ import {
 import { generateAIContent } from "./../../../../service/AIModal";
 import { toast } from "sonner";
 const PROMPT =
-  "position titile: {positionTitle} , Depends on position title give me 5-7 bullet points for my experience in resume (Please do not add experince level and No JSON array) , give me result in HTML tags";
+  "job title: {jobTitle}, position title: {positionTitle}, Depends on the job and position title give me 5-7 bullet points for my experience in resume (Please do not add experience level and No JSON array), give me result in HTML tags";
 function RichTextEditor({ onRichTextEditorChange, index, defaultValue }) {
   const [value, setValue] = useState(defaultValue);
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
   const [loading, setLoading] = useState(false);
   const GenerateSummeryFromAI = async () => {
-    if (!resumeInfo?.Experience[index]?.title) {
+    if (!resumeInfo?.experience[index]?.title) {
       toast("Please Add Position Title");
       return;
     }
@@ -35,14 +35,26 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue }) {
     try {
       setLoading(true);
 
-      const prompt = PROMPT.replace(
-        "{positionTitle}",
-        resumeInfo.Experience[index].title,
-      );
+      const prompt = PROMPT.replace("{jobTitle}", resumeInfo?.jobTitle)
+        .replace("{positionTitle}", resumeInfo.experience[index].title);
 
       const resp = await generateAIContent(prompt);
 
-      setValue(resp);
+      try {
+        // If AI returns JSON (common with some models/prompts)
+        const parsed = JSON.parse(resp);
+        const html = Array.isArray(parsed)
+          ? parsed.map((item) => `<li>${item.bullet || item}</li>`).join("")
+          : typeof parsed === "object"
+            ? Object.values(parsed)
+              .map((item) => `<li>${item}</li>`)
+              .join("")
+            : resp;
+        setValue(html.includes("<li>") ? `<ul>${html}</ul>` : html);
+      } catch (e) {
+        // If it's already HTML or just text
+        setValue(resp);
+      }
     } catch (err) {
       console.error(err);
       toast("AI generation failed");

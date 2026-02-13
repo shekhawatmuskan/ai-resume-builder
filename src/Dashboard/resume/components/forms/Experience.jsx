@@ -17,18 +17,22 @@ const formField = {
   endDate: "",
   workSummery: "",
 };
-function Experience() {
+function Experience({ enabledNext }) {
   const [experinceList, setExperinceList] = useState([]);
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
-  const params = useParams();
+  const { resumeId } = useParams();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    resumeInfo?.Experience.length > 0 &&
-      setExperinceList(resumeInfo?.Experience);
+    if (resumeInfo?.experience && resumeInfo?.experience?.length > 0) {
+      setExperinceList(resumeInfo?.experience);
+      enabledNext(true);
+    } else {
+      setExperinceList([formField]);
+    }
   }, []);
 
-  const handleChange = (index, event) => {
+  const handleChange = (event, index) => {
     const newEntries = experinceList.slice();
     const { name, value } = event.target;
     newEntries[index][name] = value;
@@ -65,26 +69,28 @@ function Experience() {
   useEffect(() => {
     setResumeInfo({
       ...resumeInfo,
-      Experience: experinceList,
+      experience: experinceList,
     });
   }, [experinceList]);
 
   const onSave = () => {
     setLoading(true);
     const data = {
-      Experience: experinceList.map(({ id, ...rest }) => rest),
+      experience: experinceList.map(({ id, ...rest }) => rest),
     };
 
     console.log(experinceList);
 
-    GlobalApi.UpdateResumeDetail(params?.resumeID, data).then(
+    GlobalApi.UpdateResumeDetail(resumeId, data).then(
       (res) => {
         console.log(res);
         setLoading(false);
-        toast("Details updated !");
+        enabledNext(true);
+        toast.success("Details updated !");
       },
       (error) => {
         setLoading(false);
+        toast.error("Failed to update details");
       },
     );
   };
@@ -101,7 +107,7 @@ function Experience() {
                   <label className="text-xs">Position Title</label>
                   <Input
                     name="title"
-                    onChange={(event) => handleChange(index, event)}
+                    onChange={(event) => handleChange(event, index)}
                     defaultValue={item?.title}
                   />
                 </div>
@@ -109,7 +115,7 @@ function Experience() {
                   <label className="text-xs">Company Name</label>
                   <Input
                     name="companyName"
-                    onChange={(event) => handleChange(index, event)}
+                    onChange={(event) => handleChange(event, index)}
                     defaultValue={item?.companyName}
                   />
                 </div>
@@ -117,7 +123,7 @@ function Experience() {
                   <label className="text-xs">City</label>
                   <Input
                     name="city"
-                    onChange={(event) => handleChange(index, event)}
+                    onChange={(event) => handleChange(event, index)}
                     defaultValue={item?.city}
                   />
                 </div>
@@ -125,7 +131,7 @@ function Experience() {
                   <label className="text-xs">State</label>
                   <Input
                     name="state"
-                    onChange={(event) => handleChange(index, event)}
+                    onChange={(event) => handleChange(event, index)}
                     defaultValue={item?.state}
                   />
                 </div>
@@ -134,7 +140,7 @@ function Experience() {
                   <Input
                     type="date"
                     name="startDate"
-                    onChange={(event) => handleChange(index, event)}
+                    onChange={(event) => handleChange(event, index)}
                     defaultValue={item?.startDate}
                   />
                 </div>
@@ -143,7 +149,7 @@ function Experience() {
                   <Input
                     type="date"
                     name="endDate"
-                    onChange={(event) => handleChange(index, event)}
+                    onChange={(event) => handleChange(event, index)}
                     defaultValue={item?.endDate}
                   />
                 </div>

@@ -1,7 +1,7 @@
 import Header from "@/components/custom/Header";
 import { Button } from "@/components/ui/button";
 import { ResumeInfoContext } from "@/context/ResumeInfoContext";
-import ResumePreview from "@/dashboard/resume/components/ResumePreview";
+import ResumePreview from "@/Dashboard/resume/components/ResumePreview";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import * as GlobalApi from "./../../../../service/GlobalApi";
@@ -9,15 +9,20 @@ import { RWebShare } from "react-web-share";
 
 function ViewResume() {
   const [resumeInfo, setResumeInfo] = useState();
-  const { resumeID } = useParams();
+  const { resumeId } = useParams();
 
   useEffect(() => {
     GetResumeInfo();
-  }, []);
+  }, [resumeId]);
+
   const GetResumeInfo = () => {
-    GlobalApi.GetResumeById(resumeID).then((resp) => {
-      console.log(resp.data.data);
-      setResumeInfo(resp.data.data);
+    GlobalApi.GetResumeById(resumeId).then((resp) => {
+      if (resp.data.data && resp.data.data.length > 0) {
+        const data = resp.data.data[0];
+        // Flatten Strapi v4 response if attributes exist
+        const flattenedData = data.attributes ? { id: data.id, ...data.attributes } : data;
+        setResumeInfo(flattenedData);
+      }
     });
   };
 
@@ -41,25 +46,26 @@ function ViewResume() {
           <div className="flex justify-between px-44 my-10">
             <Button onClick={HandleDownload}>Download</Button>
 
-            <RWebShare
-              data={{
-                text: "Hello Everyone, This is my resume please open url to see it",
-                url:
-                  import.meta.env.VITE_BASE_URL +
-                  "/my-resume/" +
-                  resumeID +
-                  "/view",
-                title:
-                  resumeInfo?.firstName +
-                  " " +
-                  resumeInfo?.lastName +
-                  " resume",
-              }}
-              onClick={() => console.log("shared successfully!")}
-            >
-              {" "}
-              <Button>Share</Button>
-            </RWebShare>
+            {resumeInfo && (
+              <RWebShare
+                data={{
+                  text: "Hello Everyone, This is my resume please open url to see it",
+                  url:
+                    import.meta.env.VITE_BASE_URL +
+                    "/my-resume/" +
+                    resumeId +
+                    "/view",
+                  title:
+                    resumeInfo?.firstName +
+                    " " +
+                    resumeInfo?.lastName +
+                    " resume",
+                }}
+                onClick={() => console.log("shared successfully!")}
+              >
+                <Button>Share</Button>
+              </RWebShare>
+            )}
           </div>
         </div>
       </div>

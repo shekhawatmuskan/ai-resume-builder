@@ -4,11 +4,11 @@ import App from "./App.jsx";
 import "./index.css";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import SignInPage from "./auth/sign-in/index.jsx";
-import Home from "./home/index.jsx";
-import Dashboard from "./dashboard/index.jsx";
+import Home from "./Home/index.jsx";
+import Dashboard from "./Dashboard/index.jsx";
 import { ClerkProvider } from "@clerk/clerk-react";
-import EditResume from "./dashboard/resume/[resumeID]/edit/index.jsx";
-import ViewResume from "./my-resume/[resumeID]/view/index.jsx";
+import EditResume from "./Dashboard/resume/[resumeId]/edit/index.jsx";
+import ViewResume from "./my-resume/[resumeId]/view/index.jsx";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const router = createBrowserRouter([
@@ -24,18 +24,17 @@ const router = createBrowserRouter([
         element: <Dashboard />,
       },
       {
-        path: "/dashboard/resume/:resumeID/edit",
+        path: "/dashboard/resume/:resumeId/edit",
         element: <EditResume />,
       },
     ],
   },
-  ,
   {
     path: "/auth/sign-in",
     element: <SignInPage />,
   },
   {
-    path: "/my-resume/:resumeID/view",
+    path: "/my-resume/:resumeId/view",
     element: <ViewResume />,
   },
 ]);

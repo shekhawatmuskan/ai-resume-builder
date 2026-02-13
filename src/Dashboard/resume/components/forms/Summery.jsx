@@ -10,10 +10,11 @@ import { generateAIContent } from "./../../../../../service/AIModal";
 
 /* ---------- AI PROMPT TEMPLATE ---------- */
 const PROMPT = `
+Resume Title: {resumeTitle}
 Job Title: {jobTitle}
 
 Return ONLY valid JSON.
-Give 3 professional resume summaries (3–4 lines each) for:
+Give 3 professional resume summaries (4–5 lines each) for:
 - Fresher
 - Mid Level
 - Senior Level
@@ -32,17 +33,22 @@ function Summery({ enabledNext }) {
   const [summery, setSummery] = useState(resumeInfo?.summery || "");
   const [loading, setLoading] = useState(false);
   const [aiGeneratedSummeryList, setAiGenerateSummeryList] = useState([]);
-  const params = useParams();
+  const { resumeId } = useParams();
+  useEffect(() => {
+    if (resumeInfo?.summery) {
+      setSummery(resumeInfo?.summery);
+    }
+  }, []);
 
   /* ---------- Sync summary with context ---------- */
-  useEffect(() => {
-    if (summery) {
-      setResumeInfo({
-        ...resumeInfo,
-        summery,
-      });
-    }
-  }, [summery]);
+  const handleChange = (e) => {
+    enabledNext(false);
+    setSummery(e.target.value);
+    setResumeInfo({
+      ...resumeInfo,
+      summery: e.target.value,
+    });
+  };
 
   /* ---------- Generate Summary from AI ---------- */
   const GenerateSummeryFromAI = async () => {
@@ -54,12 +60,22 @@ function Summery({ enabledNext }) {
     try {
       setLoading(true);
 
-      const finalPrompt = PROMPT.replace("{jobTitle}", resumeInfo.jobTitle);
+      const finalPrompt = PROMPT.replace("{jobTitle}", resumeInfo.jobTitle)
+        .replace("{resumeTitle}", resumeInfo.title)
+        .replace("{positionTitle}", resumeInfo.jobTitle);
 
       const text = await generateAIContent(finalPrompt);
-      const parsed = JSON.parse(text);
 
-      setAiGenerateSummeryList(parsed);
+      try {
+        const parsed = JSON.parse(text);
+        setAiGenerateSummeryList(parsed);
+      } catch (parseError) {
+        console.warn("JSON parsing failed, attempting fallback:", parseError);
+        // Fallback: If AI returns a plain string, wrap it as a "Mid Level" summary
+        setAiGenerateSummeryList([
+          { experience_level: "Mid Level", summary: text }
+        ]);
+      }
     } catch (err) {
       console.error(err);
       toast.error(err.message || "AI generation failed");
@@ -78,7 +94,7 @@ function Summery({ enabledNext }) {
     };
 
     try {
-      await GlobalApi.UpdateResumeDetail(params?.resumeID, data);
+      await GlobalApi.UpdateResumeDetail(resumeId, data);
       enabledNext(true);
       toast.success("Details updated");
     } catch (err) {
@@ -122,7 +138,7 @@ function Summery({ enabledNext }) {
             className="mt-5"
             required
             value={summery}
-            onChange={(e) => setSummery(e.target.value)}
+            onChange={handleChange}
           />
 
           <div className="mt-4 flex justify-end">
@@ -145,7 +161,13 @@ function Summery({ enabledNext }) {
           {aiGeneratedSummeryList.map((item, index) => (
             <div
               key={index}
-              onClick={() => setSummery(item.summary)}
+              onClick={() => {
+                setSummery(item.summary);
+                setResumeInfo({
+                  ...resumeInfo,
+                  summery: item.summary,
+                });
+              }}
               className="p-5 shadow-lg my-4 rounded-lg cursor-pointer hover:border-primary border"
             >
               <h2 className="font-bold my-1 text-primary">

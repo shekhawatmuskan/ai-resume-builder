@@ -9,20 +9,30 @@ import { ResumeInfoContext } from "@/context/ResumeInfoContext";
 import * as GlobalApi from "./../../../../../service/GlobalApi";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
-function Skills() {
+function Skills({ enabledNext }) {
   const [skillsList, setSkillsList] = useState([
     {
       name: "",
       rating: 0,
     },
   ]);
-  const { resumeID } = useParams();
+  const { resumeId } = useParams();
 
   const [loading, setLoading] = useState(false);
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
 
   useEffect(() => {
-    resumeInfo && setSkillsList(resumeInfo?.skills);
+    if (resumeInfo?.skills && resumeInfo?.skills?.length > 0) {
+      setSkillsList(resumeInfo?.skills);
+      enabledNext(true);
+    } else {
+      setSkillsList([
+        {
+          name: "",
+          rating: 0,
+        },
+      ]);
+    }
   }, []);
 
   const handleChange = (index, name, value) => {
@@ -48,22 +58,23 @@ function Skills() {
   const onSave = () => {
     setLoading(true);
     const data = {
-      data: {
-        skills: skillsList.map(({ id, ...rest }) => rest),
-      },
+      skills: skillsList.map(({ id, ...rest }) => rest),
     };
 
-    GlobalApi.UpdateResumeDetail(resumeID, data).then(
+    GlobalApi.UpdateResumeDetail(resumeId, data).then(
       (resp) => {
         console.log(resp);
         setLoading(false);
-        toast("Details updated !");
+        enabledNext(true);
+        toast.success("Details updated !");
       },
       (error) => {
         setLoading(false);
-        toast("Server Error, Try again!");
-      },
-    );
+        toast.error("Server Error, Try again!");
+      }
+    ).finally(() => {
+      setLoading(false);
+    });
   };
 
   useEffect(() => {
@@ -79,7 +90,7 @@ function Skills() {
 
       <div>
         {skillsList.map((item, index) => (
-          <div className="flex justify-between mb-2 border rounded-lg p-3 ">
+          <div key={index} className="flex justify-between mb-2 border rounded-lg p-3 ">
             <div>
               <label className="text-xs">Name</label>
               <Input

@@ -37,7 +37,7 @@ function ThemeColor() {
 
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
   const [selectedColor, setSelectedColor] = useState();
-  const { resumeID } = useParams();
+  const { resumeId } = useParams();
   const onColorSelect = (color) => {
     setSelectedColor(color);
     setResumeInfo({
@@ -45,11 +45,9 @@ function ThemeColor() {
       themeColor: color,
     });
     const data = {
-      data: {
-        themeColor: color,
-      },
+      themeColor: color,
     };
-    GlobalApi.UpdateResumeDetail(resumeID, data).then((resp) => {
+    GlobalApi.UpdateResumeDetail(resumeId, data).then((resp) => {
       console.log(resp);
       toast("Theme Color Updated");
     });
@@ -68,6 +66,7 @@ function ThemeColor() {
         <div className="grid grid-cols-5 gap-3">
           {colors.map((item, index) => (
             <div
+              key={index}
               onClick={() => onColorSelect(item)}
               className={`h-5 w-5 rounded-full cursor-pointer
              hover:border-black border

@@ -1,3 +1,4 @@
+import { Star } from "lucide-react";
 import React from "react";
 
 function SkillsPreview({ resumeInfo }) {
@@ -9,7 +10,7 @@ function SkillsPreview({ resumeInfo }) {
           color: resumeInfo?.themeColor,
         }}
       >
-        Education
+        Skills
       </h2>
       <hr
         style={{
@@ -21,14 +22,17 @@ function SkillsPreview({ resumeInfo }) {
         {resumeInfo?.skills.map((skill, index) => (
           <div key={index} className="flex items-center justify-between">
             <h2 className="text-xs">{skill.name}</h2>
-            <div className="h-2 bg-gray-200 w-[120px]">
-              <div
-                className="h-2"
-                style={{
-                  backgroundColor: resumeInfo?.themeColor,
-                  width: skill?.rating * 20 + "%",
-                }}
-              ></div>
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  className={`h-3 w-3 ${star <= skill?.rating ? "fill-current" : "text-gray-200"
+                    }`}
+                  style={{
+                    color: star <= skill?.rating ? resumeInfo?.themeColor : "",
+                  }}
+                />
+              ))}
             </div>
           </div>
         ))}

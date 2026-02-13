@@ -6,23 +6,26 @@ import { ResumeInfoContext } from "@/context/ResumeInfoContext";
 import * as GlobalApi from "./../../../../../service/GlobalApi";
 
 function EditResume() {
-  const { resumeID } = useParams();
+  const { resumeId } = useParams();
   const [resumeInfo, setResumeInfo] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (resumeID) {
+    if (resumeId) {
       GetResumeInfo();
     }
-  }, [resumeID]);
+  }, [resumeId]);
 
   const GetResumeInfo = async () => {
     try {
       setLoading(true);
-      const resp = await GlobalApi.GetResumeById(resumeID);
+      const resp = await GlobalApi.GetResumeById(resumeId);
 
       // Strapi returns array even for single record
-      setResumeInfo(resp.data.data[0]);
+      const data = resp.data.data[0];
+      // Flatten Strapi v4 response if attributes exist
+      const flattenedData = data.attributes ? { id: data.id, ...data.attributes } : data;
+      setResumeInfo(flattenedData);
     } catch (error) {
       console.error("Failed to fetch resume:", error);
     } finally {

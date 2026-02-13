@@ -8,10 +8,10 @@ import { useParams } from "react-router-dom";
 import * as GlobalApi from "./../../../../../service/GlobalApi";
 import { toast } from "sonner";
 
-function Education() {
+function Education({ enabledNext }) {
   const [loading, setLoading] = useState(false);
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
-  const params = useParams();
+  const { resumeId } = useParams();
   const [educationalList, setEducationalList] = useState([
     {
       universityName: "",
@@ -24,7 +24,21 @@ function Education() {
   ]);
 
   useEffect(() => {
-    resumeInfo && setEducationalList(resumeInfo?.education);
+    if (resumeInfo?.education && resumeInfo?.education?.length > 0) {
+      setEducationalList(resumeInfo?.education);
+      enabledNext(true);
+    } else {
+      setEducationalList([
+        {
+          universityName: "",
+          degree: "",
+          major: "",
+          startDate: "",
+          endDate: "",
+          description: "",
+        },
+      ]);
+    }
   }, []);
   const handleChange = (event, index) => {
     const newEntries = educationalList.slice();
@@ -52,22 +66,24 @@ function Education() {
   const onSave = () => {
     setLoading(true);
     const data = {
-      data: {
-        education: educationalList.map(({ id, ...rest }) => rest),
-      },
+      education: educationalList.map(({ id, ...rest }) => rest),
     };
 
-    GlobalApi.UpdateResumeDetail(params.resumeID, data).then(
+    console.log("Saving Education for:", resumeId, data);
+    GlobalApi.UpdateResumeDetail(resumeId, data).then(
       (resp) => {
         console.log(resp);
         setLoading(false);
-        toast("Details updated !");
+        enabledNext(true);
+        toast.success("Details updated !");
       },
       (error) => {
         setLoading(false);
-        toast("Server Error, Please try again!");
-      },
-    );
+        toast.error("Server Error, Please try again!");
+      }
+    ).finally(() => {
+      setLoading(false);
+    });
   };
 
   useEffect(() => {
@@ -83,7 +99,7 @@ function Education() {
 
       <div>
         {educationalList.map((item, index) => (
-          <div>
+          <div key={index}>
             <div className="grid grid-cols-2 gap-3 border p-3 my-5 rounded-lg">
               <div className="col-span-2">
                 <label>University Name</label>
