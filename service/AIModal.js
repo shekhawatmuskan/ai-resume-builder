@@ -4,28 +4,30 @@ const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
 const groqApiKey = import.meta.env.VITE_GROQ_API_KEY;
 
 /* ---------- MOCK DATA FALLBACK ---------- */
-const getMockSummaries = (jobTitle, isBullets = false) => {
+// Enhanced mock fallback that uses the provided job title
+const getMockSummaries = (jobTitle = "Professional", isBullets = false) => {
+  const title = jobTitle || "Professional";
   if (isBullets) {
     return [
-      `Developed high-performance features for ${jobTitle} applications, improving user engagement by 20%. I took ownership of the entire development lifecycle, from initial architecture to final deployment.`,
-      `Collaborated with cross-functional teams to design and implement scalable ${jobTitle} solutions that met core business objectives. I facilitated weekly standups and design reviews to ensure alignment.`,
-      `Optimized codebase and resolved critical bugs in ${jobTitle} modules, reducing latency by 15% and increasing system stability. I implemented automated testing suites that improved code coverage significantly.`,
-      `Mentored junior developers and enforced best practices for ${jobTitle} development workflows, resulting in a 30% increase in team velocity. I led technical workshops on modern development patterns.`,
-      `Led the architecture and deployment of several ${jobTitle} projects using modern technologies like React and Strapi. I monitored system performance and scaled infrastructure to handle peak traffic.`,
+      `Developed high-performance features for ${title} applications, improving user engagement by 20%.`,
+      `Collaborated with cross-functional teams to design and implement scalable ${title} solutions.`,
+      `Optimized codebase and resolved critical bugs in ${title} modules, increasing system stability.`,
+      `Mentored junior developers and enforced best practices for ${title} development workflows.`,
+      `Led the architecture and deployment of several ${title} projects using modern technologies.`,
     ].join("\n");
   }
   return [
     {
       experience_level: "Fresher",
-      summary: `Motivated and detail-oriented ${jobTitle} graduate with a strong academic foundation. Possesses excellent communication skills and a quick learning ability, eager to leverage passion for innovation within a collaborative team. Committed to continuous professional growth and delivering exceptional results in fast-paced projects. I am dedicated to mastering new technologies and contributing to impactful software solutions.`,
+      summary: `${title} graduate with a passion for innovation. Eager to contribute to collaborative projects and deliver exceptional results while mastering new technologies in the field.`,
     },
     {
       experience_level: "Mid Level",
-      summary: `Dynamic ${jobTitle} with over 5 years of proven experience in developing high-impact solutions and driving operational efficiency. Demonstrated expertise in cross-functional collaboration and strategic planning to meet business objectives. Passionate about applying advanced technical skills to solve complex problems and deliver measurable ROI. Successfully managed multiple projects simultaneously while maintaining high standards of quality and performance.`,
+      summary: `Dynamic ${title} with 5+ years of experience in driving operational efficiency. Proven expertise in strategic planning and cross-functional leadership to solve complex problems.`,
     },
     {
       experience_level: "Senior Level",
-      summary: `Accomplished ${jobTitle} leader with a decade of experience in steering large-scale digital transformations and mentoring high-performing teams. Expert in architectural design, performance optimization, and implementing scalable solutions that align with long-term corporate goals. Dedicated to innovation and excellence in all aspects of career. Proven ability to lead through adversity and deliver robust technical strategies that drive long-term business success.`,
+      summary: `Accomplished ${title} leader specializing in digital transformation. Expert at mentoring high-performing teams and designing scalable architectures that align with corporate goals.`,
     },
   ];
 };
@@ -33,62 +35,52 @@ const getMockSummaries = (jobTitle, isBullets = false) => {
 export const generateAIContent = async (prompt) => {
   const isBullets = prompt.toLowerCase().includes("bullet");
 
-  // DISNOSTIC: List models if failure persists
-  const listAvailableModels = async () => {
-    try {
-      const resp = await axios.get(`https://generativelanguage.googleapis.com/v1beta/models?key=${geminiApiKey}`);
-      console.log("DEBUG: Available models for this key:", resp.data.models.map(m => m.name));
-    } catch (e) {
-      console.error("DEBUG: Failed to list models. Key might be invalid or API not enabled.", e.response?.data || e.message);
-    }
-  };
+  // Robust Job Title Extraction from prompt for fallback/context
+  let extractedJobTitle = "Professional";
+  const titleRegex = /job title:\s*(.*?)(?:\n|,|$)/i;
+  const match = prompt.match(titleRegex);
+  if (match && match[1] && match[1].trim() !== "") {
+    extractedJobTitle = match[1].trim();
+  }
 
-  // 1. Try Gemini API via Axios (Direct REST call)
+  // 1. Try Gemini API via Axios (Direct REST call - bypasses SDK issues)
   if (geminiApiKey && geminiApiKey !== "") {
-    try {
-      // Trying the most common and latest model aliases in order
-      const models = ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro"];
+    // Verified models from user logs
+    const models = ["gemini-2.0-flash", "gemini-flash-latest", "gemini-pro-latest"];
 
-      for (const modelName of models) {
-        try {
-          const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`,
-            {
-              contents: [{ parts: [{ text: prompt }] }]
-            },
-            {
-              headers: { "Content-Type": "application/json" },
-              timeout: 10000
-            }
-          );
+    for (const modelName of models) {
+      try {
+        const response = await axios.post(
+          `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`,
+          {
+            contents: [{ parts: [{ text: prompt }] }]
+          },
+          {
+            headers: { "Content-Type": "application/json" },
+            timeout: 10000
+          }
+        );
 
-          if (response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-            let text = response.data.candidates[0].content.parts[0].text;
-            if (!isBullets) {
-              text = text.replace(/```json|```/g, "").trim();
-            }
-            return text;
+        if (response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+          let text = response.data.candidates[0].content.parts[0].text;
+          if (!isBullets) {
+            // Remove markdown backticks if AI decided to wrap JSON
+            text = text.replace(/```json|```/g, "").trim();
           }
-        } catch (innerErr) {
-          const status = innerErr.response?.status;
-          if (status === 404) {
-            console.warn(`Model ${modelName} not found, trying next...`);
-            continue;
-          }
-          throw innerErr;
+          return text;
         }
+      } catch (innerErr) {
+        // Skip 404/Not Found for models and try next in chain
+        if (innerErr.response?.status === 404) {
+          console.warn(`Model ${modelName} not available, continuing fallback chain.`);
+          continue;
+        }
+        console.warn(`Gemini Error (${modelName}):`, innerErr.message);
       }
-
-      // If loop finishes with 404s, run diagnostic
-      await listAvailableModels();
-
-    } catch (geminiError) {
-      console.warn("All Gemini attempts failed, trying fallback:", geminiError);
-      await listAvailableModels();
     }
   }
 
-  // 2. Try Groq API (Secondary)
+  // 2. Try Groq API (Secondary Fallback)
   if (groqApiKey && groqApiKey !== "") {
     try {
       const response = await axios.post(
@@ -108,11 +100,12 @@ export const generateAIContent = async (prompt) => {
 
       return response.data.choices[0].message.content;
     } catch (groqError) {
-      console.error("Groq API Error, falling back to Mock:", groqError);
+      console.error("Groq API Error:", groqError.message);
     }
   }
 
-  // 3. Final Fallback
-  const mock = getMockSummaries("Professional", isBullets);
+  // 3. Final Mock Fallback (Guaranteed relevant to the job title)
+  console.warn("AI Services exhausted. Using Job-Specific Mock Fallback.");
+  const mock = getMockSummaries(extractedJobTitle, isBullets);
   return isBullets ? mock : JSON.stringify(mock);
 };
