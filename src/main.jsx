@@ -7,7 +7,7 @@ import SignInPage from "./auth/sign-in/index.jsx";
 import Home from "./Home/index.jsx";
 import Dashboard from "./Dashboard/index.jsx";
 import { ClerkProvider } from "@clerk/clerk-react";
-import EditResume from "./Dashboard/resume/[resumeId]/edit/index.jsx";
+import EditResume from "./Dashboard/resume/[resumeID]/edit/index.jsx";
 import ViewResume from "./my-resume/[resumeId]/view/index.jsx";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
