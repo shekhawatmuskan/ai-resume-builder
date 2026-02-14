@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ResumeInfoContext } from "@/context/ResumeInfoContext";
 import React, { useContext, useEffect, useState } from "react";
+import RichTextEditor from "../RichTextEditor";
 import { useParams } from "react-router-dom";
 import * as GlobalApi from "./../../../../../service/GlobalApi";
 import { Brain, LoaderCircle } from "lucide-react";
@@ -134,11 +135,16 @@ function Summery({ enabledNext }) {
             </Button>
           </div>
 
-          <Textarea
-            className="mt-5"
-            required
-            value={summery}
-            onChange={handleChange}
+          <RichTextEditor
+            defaultValue={summery}
+            onRichTextEditorChange={(e) => {
+              const val = e.target.value;
+              setSummery(val);
+              setResumeInfo({
+                ...resumeInfo,
+                summery: val,
+              });
+            }}
           />
 
           <div className="mt-4 flex justify-end">

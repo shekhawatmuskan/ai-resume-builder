@@ -1,7 +1,12 @@
 import React from "react";
 
 function SummeryPreview({ resumeInfo }) {
-  return <p className="text-xs">{resumeInfo?.summery}</p>;
+  return (
+    <div
+      className="text-xs preview-list-container"
+      dangerouslySetInnerHTML={{ __html: resumeInfo?.summery }}
+    />
+  );
 }
 
 export default SummeryPreview;
