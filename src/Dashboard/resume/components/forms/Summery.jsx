@@ -168,6 +168,7 @@ function Summery({ enabledNext }) {
             <div
               key={index}
               onClick={() => {
+                enabledNext(false);
                 setSummery(item.summary);
                 setResumeInfo({
                   ...resumeInfo,

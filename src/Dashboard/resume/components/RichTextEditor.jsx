@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ResumeInfoContext } from "@/context/ResumeInfoContext";
 import { Brain, LoaderCircle } from "lucide-react";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   BtnBold,
   BtnBulletList,
@@ -26,6 +26,11 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue }) {
   const [value, setValue] = useState(defaultValue);
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setValue(defaultValue);
+  }, [defaultValue]);
+
   const GenerateSummeryFromAI = async () => {
     if (!resumeInfo?.experience[index]?.title) {
       toast("Please Add Position Title");
@@ -50,10 +55,12 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue }) {
               .map((item) => `<li>${item}</li>`)
               .join("")
             : resp;
-        setValue(html.includes("<li>") ? `<ul>${html}</ul>` : html);
+        const finalVal = html.includes("<li>") ? `<ul>${html}</ul>` : html;
+        setValue(finalVal);
+        onRichTextEditorChange({ target: { value: finalVal } });
       } catch (e) {
-        // If it's already HTML or just text
         setValue(resp);
+        onRichTextEditorChange({ target: { value: resp } });
       }
     } catch (err) {
       console.error(err);
@@ -65,24 +72,26 @@ function RichTextEditor({ onRichTextEditorChange, index, defaultValue }) {
 
   return (
     <div>
-      <div className="flex justify-between my-2">
-        <label className="text-xs">Summery</label>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={GenerateSummeryFromAI}
-          disabled={loading}
-          className="flex gap-2 border-primary text-primary"
-        >
-          {loading ? (
-            <LoaderCircle className="animate-spin" />
-          ) : (
-            <>
-              <Brain className="h-4 w-4" /> Generate from AI
-            </>
-          )}
-        </Button>
-      </div>
+      {index !== undefined && (
+        <div className="flex justify-between my-2">
+          <label className="text-xs">Summary</label>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={GenerateSummeryFromAI}
+            disabled={loading}
+            className="flex gap-2 border-primary text-primary"
+          >
+            {loading ? (
+              <LoaderCircle className="animate-spin" />
+            ) : (
+              <>
+                <Brain className="h-4 w-4" /> Generate from AI
+              </>
+            )}
+          </Button>
+        </div>
+      )}
       <EditorProvider>
         <Editor
           value={value}
