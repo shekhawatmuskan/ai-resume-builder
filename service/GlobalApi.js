@@ -2,7 +2,8 @@ import axios from "axios";
 
 /* ================= STRAPI API CONFIG ================= */
 
-const BASE_URL = import.meta.env.VITE_STRAPI_BASE_URL || "http://localhost:1337/api";
+const RAW_BASE_URL = import.meta.env.VITE_STRAPI_BASE_URL || "http://localhost:1337/api";
+const BASE_URL = RAW_BASE_URL.endsWith("/api") ? RAW_BASE_URL : `${RAW_BASE_URL}/api`;
 
 /**
  * Get all resumes for a specific user
