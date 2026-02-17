@@ -1,40 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { ResumeInfoContext } from "@/context/ResumeInfoContext";
 import React, { useContext, useEffect, useState } from "react";
 import RichTextEditor from "../RichTextEditor";
 import { useParams } from "react-router-dom";
 import * as GlobalApi from "./../../../../../service/GlobalApi";
-import { Brain, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
-import { generateAIContent } from "./../../../../../service/AIModal";
 
-/* ---------- AI PROMPT TEMPLATE ---------- */
-const PROMPT = `
-Resume Title: {resumeTitle}
-Job Title: {jobTitle}
-
-Return ONLY valid JSON.
-Give 3 professional resume summaries (4–5 lines each) for:
-- Fresher
-- Mid Level
-- Senior Level
-
-Format:
-[
-  {
-    "experience_level": "",
-    "summary": ""
-  }
-]
-`;
 
 function Summery({ enabledNext }) {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
   const [summery, setSummery] = useState(resumeInfo?.summery || "");
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [aiGeneratedSummeryList, setAiGenerateSummeryList] = useState([]);
   const { resumeId } = useParams();
   useEffect(() => {
     if (resumeInfo?.summery) {
@@ -42,49 +19,6 @@ function Summery({ enabledNext }) {
     }
   }, []);
 
-  /* ---------- Sync summary with context ---------- */
-  const handleChange = (e) => {
-    enabledNext(false);
-    setSummery(e.target.value);
-    setResumeInfo({
-      ...resumeInfo,
-      summery: e.target.value,
-    });
-  };
-
-  /* ---------- Generate Summary from AI ---------- */
-  const GenerateSummeryFromAI = async () => {
-    if (!resumeInfo?.jobTitle) {
-      toast("Please add Job Title first");
-      return;
-    }
-
-    try {
-      setIsGenerating(true);
-
-      const finalPrompt = PROMPT.replace("{jobTitle}", resumeInfo.jobTitle)
-        .replace("{resumeTitle}", resumeInfo.title)
-        .replace("{positionTitle}", resumeInfo.jobTitle);
-
-      const text = await generateAIContent(finalPrompt);
-
-      try {
-        const parsed = JSON.parse(text);
-        setAiGenerateSummeryList(parsed);
-      } catch (parseError) {
-        console.warn("JSON parsing failed, attempting fallback:", parseError);
-        // Fallback: If AI returns a plain string, wrap it as a "Mid Level" summary
-        setAiGenerateSummeryList([
-          { experience_level: "Mid Level", summary: text }
-        ]);
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error(err.message || "AI generation failed");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
   /* ---------- Save Summary ---------- */
   const onSave = async (e) => {
@@ -115,28 +49,8 @@ function Summery({ enabledNext }) {
         <p>Add a professional summary for your job title</p>
 
         <form className="mt-7" onSubmit={onSave}>
-          <div className="flex justify-between items-end">
-            <label>Add Summary</label>
-            <Button
-              variant="outline"
-              type="button"
-              size="sm"
-              onClick={GenerateSummeryFromAI}
-              className="border-primary text-primary flex gap-2"
-              disabled={isGenerating || isSaving}
-            >
-              {isGenerating ? (
-                <LoaderCircle className="animate-spin h-4 w-4" />
-              ) : (
-                <>
-                  <Brain className="h-4 w-4" />
-                  Generate from AI
-                </>
-              )}
-            </Button>
-          </div>
-
           <RichTextEditor
+            type="summary"
             defaultValue={summery}
             onRichTextEditorChange={(e) => {
               const val = e.target.value;
@@ -149,7 +63,7 @@ function Summery({ enabledNext }) {
           />
 
           <div className="mt-4 flex justify-end">
-            <Button type="submit" disabled={isSaving || isGenerating}>
+            <Button type="submit" disabled={isSaving}>
               {isSaving ? (
                 <LoaderCircle className="animate-spin h-4 w-4" />
               ) : (
@@ -159,33 +73,6 @@ function Summery({ enabledNext }) {
           </div>
         </form>
       </div>
-
-      {/* ---------- AI Suggestions ---------- */}
-      {aiGeneratedSummeryList.length > 0 && (
-        <div className="my-5">
-          <h2 className="font-bold text-lg">AI Suggestions</h2>
-
-          {aiGeneratedSummeryList.map((item, index) => (
-            <div
-              key={index}
-              onClick={() => {
-                enabledNext(false);
-                setSummery(item.summary);
-                setResumeInfo({
-                  ...resumeInfo,
-                  summery: item.summary,
-                });
-              }}
-              className="p-5 shadow-lg my-4 rounded-lg cursor-pointer hover:border-primary border"
-            >
-              <h2 className="font-bold my-1 text-primary">
-                Level: {item.experience_level}
-              </h2>
-              <p>{item.summary}</p>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

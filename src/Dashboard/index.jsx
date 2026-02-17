@@ -5,21 +5,33 @@ import * as GlobalApi from "./../../service/GlobalApi.js";
 import ResumeCardItem from "./components/ResumeCardItem";
 
 function Dashboard() {
-  const { user } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
   const [resumeList, setResumeList] = useState([]);
   const [loading, setLoading] = useState(false);
+
   useEffect(() => {
-    user && GetResumesList();
-  }, [user]);
+    if (isLoaded && isSignedIn && user?.primaryEmailAddress?.emailAddress) {
+      GetResumesList();
+    }
+  }, [user, isLoaded, isSignedIn]);
 
   /**
    * Used to Get Users Resume List
    */
   const GetResumesList = () => {
     setLoading(true);
-    GlobalApi.GetUserResumes(user?.primaryEmailAddress?.emailAddress)
+    const email = user?.primaryEmailAddress?.emailAddress;
+    if (!email) {
+      setLoading(false);
+      return;
+    }
+
+    GlobalApi.GetUserResumes(email)
       .then((resp) => {
         setResumeList(resp.data.data);
+      })
+      .catch((err) => {
+        console.error("Fetch Resumes Error:", err);
       })
       .finally(() => {
         setLoading(false);
