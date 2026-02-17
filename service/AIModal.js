@@ -32,6 +32,8 @@ const getMockSummaries = (jobTitle = "Professional", isBullets = false) => {
   ];
 };
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export const generateAIContent = async (prompt) => {
   const isBullets = prompt.toLowerCase().includes("bullet");
 
@@ -45,11 +47,19 @@ export const generateAIContent = async (prompt) => {
 
   // 1. Try Gemini API via Axios (Direct REST call - bypasses SDK issues)
   if (geminiApiKey && geminiApiKey !== "") {
-    // Verified models from user logs
-    const models = ["gemini-2.0-flash", "gemini-flash-latest", "gemini-pro-latest"];
+    // Verified models from user logs and documentation
+    const models = [
+      "gemini-2.0-flash",
+      "gemini-1.5-flash",
+      "gemini-1.5-pro",
+      "gemini-flash-latest",
+      "gemini-pro-latest"
+    ];
 
-    for (const modelName of models) {
+    for (let i = 0; i < models.length; i++) {
+      const modelName = models[i];
       try {
+        console.log(`Attempting AI generation with model: ${modelName}`);
         const response = await axios.post(
           `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`,
           {
@@ -57,7 +67,7 @@ export const generateAIContent = async (prompt) => {
           },
           {
             headers: { "Content-Type": "application/json" },
-            timeout: 10000
+            timeout: 20000 // Increased timeout for better resilience
           }
         );
 
@@ -75,7 +85,14 @@ export const generateAIContent = async (prompt) => {
           console.warn(`Model ${modelName} not available, continuing fallback chain.`);
           continue;
         }
-        console.warn(`Gemini Error (${modelName}):`, innerErr.message);
+
+        console.warn(`Gemini Error (${modelName}):`, innerErr.response?.status || innerErr.message);
+
+        // If 429, 503, or timeout, wait before trying next model
+        if (innerErr.response?.status === 429 || innerErr.response?.status === 503 || innerErr.code === 'ECONNABORTED') {
+          console.log(`Rate limited (429), Service Unavailable (503), or timeout. Waiting 2.5s before retry...`);
+          await sleep(2500); // 2.5s delay
+        }
       }
     }
   }

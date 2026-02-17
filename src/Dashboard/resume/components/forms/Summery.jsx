@@ -32,7 +32,8 @@ Format:
 function Summery({ enabledNext }) {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
   const [summery, setSummery] = useState(resumeInfo?.summery || "");
-  const [loading, setLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [aiGeneratedSummeryList, setAiGenerateSummeryList] = useState([]);
   const { resumeId } = useParams();
   useEffect(() => {
@@ -59,7 +60,7 @@ function Summery({ enabledNext }) {
     }
 
     try {
-      setLoading(true);
+      setIsGenerating(true);
 
       const finalPrompt = PROMPT.replace("{jobTitle}", resumeInfo.jobTitle)
         .replace("{resumeTitle}", resumeInfo.title)
@@ -81,14 +82,14 @@ function Summery({ enabledNext }) {
       console.error(err);
       toast.error(err.message || "AI generation failed");
     } finally {
-      setLoading(false);
+      setIsGenerating(false);
     }
   };
 
   /* ---------- Save Summary ---------- */
   const onSave = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setIsSaving(true);
 
     const data = {
       summery,
@@ -102,7 +103,7 @@ function Summery({ enabledNext }) {
       console.error(err);
       toast("Failed to save details");
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -122,9 +123,9 @@ function Summery({ enabledNext }) {
               size="sm"
               onClick={GenerateSummeryFromAI}
               className="border-primary text-primary flex gap-2"
-              disabled={loading}
+              disabled={isGenerating || isSaving}
             >
-              {loading ? (
+              {isGenerating ? (
                 <LoaderCircle className="animate-spin h-4 w-4" />
               ) : (
                 <>
@@ -148,8 +149,8 @@ function Summery({ enabledNext }) {
           />
 
           <div className="mt-4 flex justify-end">
-            <Button type="submit" disabled={loading}>
-              {loading ? (
+            <Button type="submit" disabled={isSaving || isGenerating}>
+              {isSaving ? (
                 <LoaderCircle className="animate-spin h-4 w-4" />
               ) : (
                 "Save"

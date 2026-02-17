@@ -14,8 +14,9 @@ import { v4 as uuidv4 } from "uuid";
 import * as GlobalApi from "./../../../service/GlobalApi.js";
 import { useUser } from "@clerk/clerk-react";
 import { Navigate, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
-function AddResume() {
+function AddResume({ isFirst }) {
   const [openDialog, setOpenDialog] = useState(false);
   const [resumeTitle, setResumeTitle] = useState();
   const { user } = useUser();
@@ -35,34 +36,42 @@ function AddResume() {
 
     GlobalApi.CreateNewResume(data).then(
       (resp) => {
-        console.log(resp.data.data.documentId);
         if (resp) {
           setLoading(false);
+          // Handle both Strapi 4 (id) and Strapi 5 (documentId)
+          const docId = resp.data.data.documentId || resp.data.data.id;
           navigation(
-            "/dashboard/resume/" + resp.data.data.documentId + "/edit",
+            "/dashboard/resume/" + docId + "/edit",
           );
         }
       },
       (error) => {
         setLoading(false);
+        toast.error("Failed to create resume. Please check your backend.");
       },
     );
   };
   return (
     <div>
       <div
-        className="p-14 py-24 border 
+        className={`p-14 py-24 border 
         items-center flex 
         justify-center bg-secondary
         rounded-lg h-[280px]
         hover:scale-105 transition-all hover:shadow-md
-        cursor-pointer border-dashed"
+        cursor-pointer border-dashed
+        ${isFirst && "border-primary border-2 shadow-lg animate-pulse"}`}
         onClick={() => setOpenDialog(true)}
       >
         <PlusSquare />
       </div>
+      {isFirst && (
+        <p className="text-sm text-primary font-bold text-center mt-2 animate-bounce">
+          Click here to create your first resume!
+        </p>
+      )}
 
-      <Dialog open={openDialog}>
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create New Resume</DialogTitle>

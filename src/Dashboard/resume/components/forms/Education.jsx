@@ -65,20 +65,32 @@ function Education({ enabledNext }) {
   };
   const onSave = () => {
     setLoading(true);
+
+    const cleanedEducationalList = educationalList.map((item) => {
+      const { id, documentId, createdAt, updatedAt, publishedAt, locale, ...rest } = item;
+      return {
+        ...rest,
+        // Convert empty strings to null for date fields to avoid 400 error
+        startDate: rest.startDate === "" ? null : rest.startDate,
+        endDate: rest.endDate === "" ? null : rest.endDate,
+      };
+    });
+
     const data = {
-      education: educationalList.map(({ id, ...rest }) => rest),
+      education: cleanedEducationalList,
     };
 
-    console.log("Saving Education for:", resumeId, data);
+    console.log("Saving Education data:", data);
+
     GlobalApi.UpdateResumeDetail(resumeId, data).then(
       (resp) => {
-        console.log(resp);
         setLoading(false);
         enabledNext(true);
         toast.success("Details updated !");
       },
       (error) => {
         setLoading(false);
+        console.error("Education Save Error:", error.response?.data || error.message);
         toast.error("Server Error, Please try again!");
       }
     ).finally(() => {

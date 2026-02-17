@@ -75,22 +75,33 @@ function Experience({ enabledNext }) {
 
   const onSave = () => {
     setLoading(true);
+
+    const cleanedExperienceList = experinceList.map((item) => {
+      const { id, documentId, createdAt, updatedAt, publishedAt, locale, ...rest } = item;
+      return {
+        ...rest,
+        // Convert empty strings to null for date fields to avoid 400 error
+        startDate: rest.startDate === "" ? null : rest.startDate,
+        endDate: rest.endDate === "" ? null : rest.endDate,
+      };
+    });
+
     const data = {
-      experience: experinceList.map(({ id, ...rest }) => rest),
+      experience: cleanedExperienceList,
     };
 
-    console.log(experinceList);
+    console.log("Saving Experience data:", data);
 
     GlobalApi.UpdateResumeDetail(resumeId, data).then(
       (res) => {
-        console.log(res);
         setLoading(false);
         enabledNext(true);
         toast.success("Details updated !");
       },
       (error) => {
         setLoading(false);
-        toast.error("Failed to update details");
+        console.error("Experience Save Error:", error.response?.data || error.message);
+        toast.error("Failed to update details. Check console for details.");
       },
     );
   };

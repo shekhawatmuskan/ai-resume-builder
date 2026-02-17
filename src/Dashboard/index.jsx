@@ -35,7 +35,7 @@ function Dashboard() {
       mt-10
       "
       >
-        <AddResume />
+        <AddResume isFirst={!loading && resumeList.length === 0} />
         {loading
           ? [1, 2, 3, 4].map((item, index) => (
             <div

@@ -57,8 +57,14 @@ function Skills({ enabledNext }) {
 
   const onSave = () => {
     setLoading(true);
+
+    const cleanedSkillsList = skillsList.map((item) => {
+      const { id, documentId, createdAt, updatedAt, publishedAt, locale, ...rest } = item;
+      return rest;
+    });
+
     const data = {
-      skills: skillsList.map(({ id, ...rest }) => rest),
+      skills: cleanedSkillsList,
     };
 
     GlobalApi.UpdateResumeDetail(resumeId, data).then(

@@ -31,9 +31,10 @@ function ResumeCardItem({ resume, refreshData }) {
   //   navigation(url)
   // }
 
+  const resumeId = resume.documentId || resume.id;
   const onDelete = () => {
     setLoading(true);
-    GlobalApi.DeleteResumeById(resume.documentId).then(
+    GlobalApi.DeleteResumeById(resumeId).then(
       (resp) => {
         console.log(resp);
         toast("Resume Deleted!");
@@ -48,7 +49,7 @@ function ResumeCardItem({ resume, refreshData }) {
   };
   return (
     <div className="">
-      <Link to={"/dashboard/resume/" + resume.documentId + "/edit"}>
+      <Link to={"/dashboard/resume/" + resumeId + "/edit"}>
         <div
           className="p-14 border-block-color bg-gradient-to-b
           from-pink-100 via-purple-200 to-blue-200
@@ -85,21 +86,21 @@ function ResumeCardItem({ resume, refreshData }) {
           <DropdownMenuContent className="bg-white border shadow-md">
             <DropdownMenuItem
               onClick={() =>
-                navigation("/dashboard/resume/" + resume.documentId + "/edit")
+                navigation("/dashboard/resume/" + resumeId + "/edit")
               }
             >
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
-                navigation("/my-resume/" + resume.documentId + "/view")
+                navigation("/my-resume/" + resumeId + "/view")
               }
             >
               View
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
-                navigation("/my-resume/" + resume.documentId + "/view")
+                navigation("/my-resume/" + resumeId + "/view")
               }
             >
               Download
