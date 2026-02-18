@@ -25,6 +25,16 @@ Traditional resume building is tedious. **AI Resume Builder** transforms this ex
 
 ---
 
+## 🎬 Demo
+
+<div align="center">
+
+https://github.com/user-attachments/assets/104f0866-3a58-409c-a801-aaaabd3bcd75
+
+</div>
+
+---
+
 ## 🏗️ System Blueprint
 
 The synergy between frontend, backend, and AI orchestrated in a modern serverless flow.
