@@ -143,7 +143,7 @@ Explore at `http://localhost:5173` 🚀
 
 **If this project inspired you, give it a ⭐!**
 
-[Check out my GitHub](https://github.com/shekhawatmuskan) | [Let's Connect](https://linkedin.com/in/muskan-shekhawat)
+[Check out my GitHub](https://github.com/shekhawatmuskan) | [Let's Connect]((https://www.linkedin.com/in/muskan-shekhawat-327b27216/)
 
 Built with passion and ☕ by [Muskan](https://github.com/shekhawatmuskan)
 
